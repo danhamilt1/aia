@@ -6,7 +6,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#define GENERATIONS 100000
+#define GENERATIONS 1000
 #define P_SIZE 500
 #define G_SIZE 10
 #define CV_PROB 10 // Crossover probability
@@ -63,9 +63,9 @@ int main(void){
 			}
 		}
 	}
-
+	printf("Pre selection: %d\n",calculatePopulationFitness(population, sizeof(population)/sizeof(population[0])));
 	selectFittest(population, offspring);
-
+	printf("Post selection: %d\n",calculatePopulationFitness(offspring, sizeof(offspring)/sizeof(offspring[0])));
 	for(i = 0; i < GENERATIONS; i++){
 		int j = 0;
 		//Switch around to make more semantic sense
@@ -74,7 +74,7 @@ int main(void){
 		selectFittest(newPopulation, offspring);
 	}
 
-	printf("newPop: %d\n", calculatePopulationFitness(&newPopulation, 
+	printf("After %d generations: %d\n", (int)GENERATIONS, calculatePopulationFitness(&newPopulation, 
 						sizeof(newPopulation)/sizeof(struct individual)));
 
 }
@@ -142,12 +142,12 @@ struct childPair makeChildren(struct individual parent1,
 	int i = 0;
 
 	if(probability(1.0/P_SIZE, 1.0/G_SIZE)){
-		for(i = 0; i < splitPoint; i++){
+		for(i = 0; i < splitPoint; ++i){
 			children.child[0].gene[i] = parent1.gene[i];
 			children.child[1].gene[i] = parent2.gene[i];
 		}
 
-		for(i = splitPoint; i < G_SIZE; i++){
+		for(i = splitPoint; i < G_SIZE; ++i){
 			children.child[0].gene[i] = parent2.gene[i];
 			children.child[1].gene[i] = parent1.gene[i];
 		}
@@ -168,13 +168,15 @@ struct childPair makeChildren(struct individual parent1,
 void createNewPopulation(struct individual *oldPopulation, struct individual *newPopulation){
 		struct childPair temp;
 		int i = 0;
-		for(i = 0; i < P_SIZE; i++){
+		for(i = 0; i < P_SIZE; ++i){
+			//printf("1: %d\n", i);
 			int p1 = rand()%P_SIZE;
 			int p2 = rand()%P_SIZE;
 
 			temp = makeChildren(oldPopulation[p1],oldPopulation[p2]);
 			newPopulation[i] = temp.child[0];
-			i++;
+			++i;
+			//printf("2: %d\n", i);
 			if(i!=P_SIZE){
 				newPopulation[i] = temp.child[1];
 			}
@@ -184,7 +186,7 @@ void createNewPopulation(struct individual *oldPopulation, struct individual *ne
 void selectFittest(struct individual *oldPopulation, struct individual *newPopulation){
 	int i = 0;
 	//Select the fittest parents
-	for(i = 0; i < P_SIZE; i++){
+	for(i = 0; i < P_SIZE; ++i){
 		int p1 = rand()%P_SIZE; // First parent
 		int p2 = rand()%P_SIZE; // Second parent
 
@@ -203,7 +205,7 @@ struct individual createIndividual(int gene[G_SIZE]){
 	struct individual newIndividual;
 	int i = 0;
 
-	for(i = 0; i < G_SIZE; i++){
+	for(i = 0; i < G_SIZE; ++i){
 		printf("%d",gene[i]);
 	}
 	printf("\n");
@@ -211,7 +213,7 @@ struct individual createIndividual(int gene[G_SIZE]){
 	memcpy(newIndividual.gene, gene, sizeof(*gene)*10);
 	newIndividual.fitness = calculateFitness(gene);
 
-	for(i = 0; i < G_SIZE; i++){
+	for(i = 0; i < G_SIZE; ++i){
 		printf("%d",newIndividual.gene[i]);
 	}
 	printf("\n");
