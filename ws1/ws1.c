@@ -12,7 +12,7 @@
 #define T_SIZE 5
 #define CV_PROB 10 // Crossover probability
 #define MT_PROB 10 // Mutation probability
-#define BIAS 0.9
+#define BIAS 0.6
 
 struct individual{
 	int gene[G_SIZE];
@@ -34,6 +34,7 @@ void createNewPopulation(struct individual *oldPopulation, struct individual *ne
 struct individual createIndividual(int gene[G_SIZE]);
 void selectFittest(struct individual *oldPopulation, struct individual *newPopulation);
 int tournamentSelection(struct individual *population, int tournamentSize, int populationSize);
+void mutateIndividual(struct individual individual);
 
 
 int main(void){
@@ -175,10 +176,12 @@ void createNewPopulation(struct individual *oldPopulation, struct individual *ne
 			int p2 = tournamentSelection(oldPopulation, T_SIZE, P_SIZE);
 
 			temp = crossover(oldPopulation[p1],oldPopulation[p2]);
+			mutateIndividual(temp.child[0]);
 			newPopulation[i] = temp.child[0];
 			++i;
 			//printf("2: %d\n", i);
 			if(i!=P_SIZE){
+				mutateIndividual(temp.child[1]);
 				newPopulation[i] = temp.child[1];
 			}
 		}
@@ -218,6 +221,18 @@ int tournamentSelection(struct individual *population, int tournamentSize, int p
 	return best;
 }
 
+void mutateIndividual(struct individual individual){
+	int c_length = sizeof(individual.gene)/sizeof(individual.gene[0]);
+
+	if(probability(1.0/P_SIZE, 1.0/G_SIZE)){
+		int randomIndex = rand()%c_length;
+		//printf("Before flip: %d\n", individual.gene[randomIndex]);
+		individual.gene[randomIndex] = 1 - individual.gene[randomIndex];
+		//printf("After flip: %d\n", individual.gene[randomIndex]);
+	}
+
+	//printf("%d\n", c_length);
+}
 
 struct individual createIndividual(int gene[G_SIZE]){
 	struct individual newIndividual;
