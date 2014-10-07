@@ -9,6 +9,7 @@
 #define GENERATIONS 1000
 #define P_SIZE 500
 #define G_SIZE 10
+#define T_SIZE 5
 #define CV_PROB 10 // Crossover probability
 #define MT_PROB 10 // Mutation probability
 #define BIAS 0.9
@@ -27,11 +28,12 @@ int calculatePopulationFitness(
 bool probability(float minValue, float maxValue);
 int getSeed();
 int calculateFitness(int gene[G_SIZE]);
-struct childPair makeChildren(struct individual parent1, 
+struct childPair crossover(struct individual parent1, 
 						struct individual parent2);
 void createNewPopulation(struct individual *oldPopulation, struct individual *newPopulation);
 struct individual createIndividual(int gene[G_SIZE]);
 void selectFittest(struct individual *oldPopulation, struct individual *newPopulation);
+int tournamentSelection(struct individual *population, int tournamentSize, int populationSize);
 
 
 int main(void){
@@ -45,8 +47,8 @@ int main(void){
 	srand(getSeed());
 
 	//Set initial population
-	for(i = 0;i < P_SIZE; i++){
-		for(j = 0;j < G_SIZE; j++){
+	for(i = 0;i < P_SIZE; ++i){
+		for(j = 0;j < G_SIZE; ++j){
 			population[i].gene[j] = rand()%2;
 
 		}
@@ -55,23 +57,22 @@ int main(void){
 	}
 
 	//Set fitness of an individual based on 1's in the array
-	for(i = 0; i < P_SIZE; i++){
-		for(j = 0; j < G_SIZE; j++){
+	for(i = 0; i < P_SIZE; ++i){
+		for(j = 0; j < G_SIZE; ++j){
 			if(population[i].gene[j]){
 				population[i].fitness++;
-
 			}
 		}
 	}
 	printf("Pre selection: %d\n",calculatePopulationFitness(population, sizeof(population)/sizeof(population[0])));
-	selectFittest(population, offspring);
-	printf("Post selection: %d\n",calculatePopulationFitness(offspring, sizeof(offspring)/sizeof(offspring[0])));
+	//selectFittest(population, offspring);
+	printf("Post selection: %d\n",calculatePopulationFitness(population, sizeof(population)/sizeof(population[0])));
 	for(i = 0; i < GENERATIONS; i++){
 		int j = 0;
 		//Switch around to make more semantic sense
-		memcpy(newPopulation, offspring, sizeof(struct individual)*P_SIZE);
-		createNewPopulation(newPopulation, offspring);
-		selectFittest(newPopulation, offspring);
+		memcpy(newPopulation, population, sizeof(struct individual)*P_SIZE);
+		createNewPopulation(newPopulation, population);
+		selectFittest(newPopulation, population);
 	}
 
 	printf("After %d generations: %d\n", (int)GENERATIONS, calculatePopulationFitness(&newPopulation, 
@@ -84,7 +85,7 @@ int calculatePopulationFitness(
 	int i = 0;
 	int totalFitness = 0;
 
-	for(i = 0; i < arrSize; i++){
+	for(i = 0; i < arrSize; ++i){
 		totalFitness += population[i].fitness;
 	}
 
@@ -126,16 +127,16 @@ int calculateFitness(int gene[G_SIZE]){
 	int i = 0;
 	int fitness = 0;
 
-	for(i = 0; i < G_SIZE; i++){
+	for(i = 0; i < G_SIZE; ++i){
 		if(gene[i]){
-			fitness++;
+			++fitness;
 		}
 	}
 
 	return fitness;
 }
 
-struct childPair makeChildren(struct individual parent1, 
+struct childPair crossover(struct individual parent1, 
 						struct individual parent2){
 	struct childPair children;
 	int splitPoint = rand()%G_SIZE;
@@ -170,10 +171,10 @@ void createNewPopulation(struct individual *oldPopulation, struct individual *ne
 		int i = 0;
 		for(i = 0; i < P_SIZE; ++i){
 			//printf("1: %d\n", i);
-			int p1 = rand()%P_SIZE;
-			int p2 = rand()%P_SIZE;
+			int p1 = tournamentSelection(oldPopulation, T_SIZE, P_SIZE);
+			int p2 = tournamentSelection(oldPopulation, T_SIZE, P_SIZE);
 
-			temp = makeChildren(oldPopulation[p1],oldPopulation[p2]);
+			temp = crossover(oldPopulation[p1],oldPopulation[p2]);
 			newPopulation[i] = temp.child[0];
 			++i;
 			//printf("2: %d\n", i);
@@ -198,6 +199,23 @@ void selectFittest(struct individual *oldPopulation, struct individual *newPopul
 
 		}
 	}
+}
+
+int tournamentSelection(struct individual *population, int tournamentSize, int populationSize){
+	int best = NULL;
+	int challengerIndex = 0;
+	int i = 0;	
+	
+	// Select tournament pool for this iteration
+	for(i = 0; i < tournamentSize; ++i){
+		challengerIndex = rand()%populationSize;
+		if((best == NULL) || (population[challengerIndex].fitness > population[best].fitness)){
+			best = challengerIndex;
+		}
+	}
+
+	//printf("Best from tournament: %d Fitness: %d\n", best, population[best].fitness);
+	return best;
 }
 
 
