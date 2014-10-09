@@ -6,13 +6,15 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#define GENERATIONS 1000
-#define P_SIZE 500
+#define ARC4RANDOM_MAX      0x100000000
+
+#define GENERATIONS 20
+#define P_SIZE 50
 #define G_SIZE 10
 #define T_SIZE 5
-#define CV_PROB 10 // Crossover probability
-#define MT_PROB 10 // Mutation probability
-#define BIAS 0.6
+#define CV_PROB 0.7 // Crossover probability
+#define MT_PROB 0.02 // Mutation probability
+#define BIAS 1.0
 
 struct individual{
 	int gene[G_SIZE];
@@ -38,12 +40,17 @@ void mutateIndividual(struct individual individual);
 
 
 int main(void){
+	FILE *csv;
+
 	int i = 0;
 	int j = 0;
 
 	struct individual newPopulation[P_SIZE];
 	struct individual offspring[P_SIZE];
 	struct individual population[P_SIZE];
+
+	csv = fopen("history.csv", "w");
+	fprintf(csv, "TOTAL FITNESS, MEAN,");
 
 	srand(getSeed());
 
@@ -68,13 +75,22 @@ int main(void){
 	printf("Pre selection: %d\n",calculatePopulationFitness(population, sizeof(population)/sizeof(population[0])));
 	//selectFittest(population, offspring);
 	printf("Post selection: %d\n",calculatePopulationFitness(population, sizeof(population)/sizeof(population[0])));
+	
 	for(i = 0; i < GENERATIONS; i++){
 		int j = 0;
 		//Switch around to make more semantic sense
 		memcpy(newPopulation, population, sizeof(struct individual)*P_SIZE);
 		createNewPopulation(newPopulation, population);
 		selectFittest(newPopulation, population);
+
+		fprintf(csv, "\n %d, %d", calculatePopulationFitness(&newPopulation, 
+						sizeof(newPopulation)/sizeof(struct individual)),
+						calculatePopulationFitness(&newPopulation, 
+						sizeof(newPopulation)/sizeof(struct individual))/P_SIZE);
+
 	}
+
+	fclose(csv);
 
 	printf("After %d generations: %d\n", (int)GENERATIONS, calculatePopulationFitness(&newPopulation, 
 						sizeof(newPopulation)/sizeof(struct individual)));
@@ -95,10 +111,12 @@ int calculatePopulationFitness(
 }
 
 bool probability(float minValue, float maxValue){
-	float randomNumber = rand()%P_SIZE;
+	double randomNumber = ((double)arc4random() / ARC4RANDOM_MAX);
+	// double val = ((double)arc4random() / ARC4RANDOM_MAX);
 	bool retVal = false;
-	randomNumber = (1.0/randomNumber) * BIAS;
+	randomNumber = (1.0/randomNumber);
 
+	printf("%f\n", randomNumber);
 	// Check if value lands between bounds
 	if((randomNumber > minValue) && (randomNumber < maxValue)){
 		retVal = true;
@@ -143,7 +161,7 @@ struct childPair crossover(struct individual parent1,
 	int splitPoint = rand()%G_SIZE;
 	int i = 0;
 
-	if(probability(1.0/P_SIZE, 1.0/G_SIZE)){
+	if(probability(0, CV_PROB)){
 		for(i = 0; i < splitPoint; ++i){
 			children.child[0].gene[i] = parent1.gene[i];
 			children.child[1].gene[i] = parent2.gene[i];
@@ -224,14 +242,16 @@ int tournamentSelection(struct individual *population, int tournamentSize, int p
 void mutateIndividual(struct individual individual){
 	int c_length = sizeof(individual.gene)/sizeof(individual.gene[0]);
 
-	if(probability(1.0/P_SIZE, 1.0/G_SIZE)){
-		int randomIndex = rand()%c_length;
-		//printf("Before flip: %d\n", individual.gene[randomIndex]);
-		individual.gene[randomIndex] = 1 - individual.gene[randomIndex];
-		//printf("After flip: %d\n", individual.gene[randomIndex]);
+	for(int i = 0; i < c_length; i++){
+		if(probability(0.0, MT_PROB)){
+			printf("%d Mutation happened\n", i);
+			int randomIndex = rand()%c_length;
+
+			individual.gene[randomIndex] = 1 - individual.gene[randomIndex];
+
+		}
 	}
 
-	//printf("%d\n", c_length);
 }
 
 struct individual createIndividual(int gene[G_SIZE]){
