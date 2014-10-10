@@ -6,10 +6,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#define GENERATIONS 1000
-#define P_SIZE 5000
-#define G_SIZE 100
-#define T_SIZE 50
+#define GENERATIONS 50
+#define P_SIZE 50
+#define G_SIZE 50
+#define T_SIZE 20
 #define CV_PROB 70 // Crossover probability
 #define MT_PROB 1 // Mutation probability
 //#define BIAS 1.0
@@ -34,7 +34,7 @@ void createNewPopulation(struct individual *oldPopulation, struct individual *ne
 struct individual createIndividual(int gene[G_SIZE]);
 void selectFittest(struct individual *oldPopulation, struct individual *newPopulation);
 int tournamentSelection(struct individual *population, int tournamentSize, int populationSize);
-void mutateIndividual(struct individual individual);
+void mutateIndividual(struct individual *individual);
 
 
 int main(void){
@@ -70,16 +70,14 @@ int main(void){
 			}
 		}
 	}
-	printf("Pre selection: %d\n",calculatePopulationFitness(population, sizeof(population)/sizeof(population[0])));
-	//selectFittest(population, offspring);
-	printf("Post selection: %d\n",calculatePopulationFitness(population, sizeof(population)/sizeof(population[0])));
+	printf("Initial population: %d\n",calculatePopulationFitness(population, sizeof(population)/sizeof(population[0])));
+
 
 	for(i = 0; i < GENERATIONS; i++){
 		int j = 0;
 		//Switch around to make more semantic sense
 		memcpy(newPopulation, population, sizeof(struct individual)*P_SIZE);
 		createNewPopulation(newPopulation, population);
-		//selectFittest(newPopulation, population);
 
 		fprintf(csv, "\n %d, %d", calculatePopulationFitness(&newPopulation,
 						sizeof(newPopulation)/sizeof(struct individual)),
@@ -92,7 +90,7 @@ int main(void){
 
 	fclose(csv);
 
-	printf("After %d generations: %d\n", (int)GENERATIONS, calculatePopulationFitness(&newPopulation,
+	printf("\nAfter %d generations: %d\n", (int)GENERATIONS, calculatePopulationFitness(&population,
 						sizeof(newPopulation)/sizeof(struct individual)));
 
 }
@@ -190,12 +188,16 @@ void createNewPopulation(struct individual *oldPopulation, struct individual *ne
 			int p2 = tournamentSelection(oldPopulation, T_SIZE, P_SIZE);
 
 			temp = crossover(oldPopulation[p1],oldPopulation[p2]);
-			mutateIndividual(temp.child[0]);
+			mutateIndividual(&temp.child[0]);
 			newPopulation[i] = temp.child[0];
+			//printf("\ncopy:   ");
+			//for(int j = 0; j < G_SIZE; ++j){
+			//	printf("%d",newPopulation[i].gene[j]);
+			//}
 			++i;
 			//printf("2: %d\n", i);
 			if(i!=P_SIZE){
-				mutateIndividual(temp.child[1]);
+				mutateIndividual(&temp.child[1]);
 				newPopulation[i] = temp.child[1];
 			}
 		}
@@ -235,14 +237,22 @@ int tournamentSelection(struct individual *population, int tournamentSize, int p
 	return best;
 }
 
-void mutateIndividual(struct individual individual){
-	int c_length = sizeof(individual.gene)/sizeof(individual.gene[0]);
+void mutateIndividual(struct individual *individual){
+	int c_length = sizeof(individual->gene)/sizeof(individual->gene[0]);
 	//printf("\nMutations: ");
-	for(int i = 0; i < c_length; i++){
+	for(int i = 0; i < c_length; ++i){
 		if(probability(0, MT_PROB)){
-		//printf("%d ",i);
+	//	printf("%d ",i);
 			int randomIndex = rand()%c_length;
-			individual.gene[randomIndex] = 1 - individual.gene[randomIndex];
+			//printf("\nbefore: ");
+			//for(int j = 0; j < c_length; ++j){
+			//	printf("%d",individual->gene[j]);
+			//}
+			individual->gene[randomIndex] = 1 - individual->gene[randomIndex];
+			//printf("\nafter:  ");
+			//for(int j = 0; j < c_length; ++j){
+			//	printf("%d",individual->gene[j]);
+			//}
 		}
 	}
 
@@ -260,9 +270,9 @@ struct individual createIndividual(int gene[G_SIZE]){
 	memcpy(newIndividual.gene, gene, sizeof(*gene)*10);
 	newIndividual.fitness = calculateFitness(gene);
 
-	for(i = 0; i < G_SIZE; ++i){
-		printf("%d",newIndividual.gene[i]);
-	}
+	//for(i = 0; i < G_SIZE; ++i){
+	//	printf("%d",newIndividual.gene[i]);
+	//}
 	printf("\n");
 	return newIndividual;
 }
