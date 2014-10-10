@@ -7,11 +7,11 @@
 #include <unistd.h>
 
 #define GENERATIONS 1000
-#define P_SIZE 500
-#define G_SIZE 1000
-#define T_SIZE 500
-#define CV_PROB 10 // Crossover probability
-#define MT_PROB 70 // Mutation probability
+#define P_SIZE 5000
+#define G_SIZE 100
+#define T_SIZE 50
+#define CV_PROB 70 // Crossover probability
+#define MT_PROB 1 // Mutation probability
 //#define BIAS 1.0
 
 struct individual{
@@ -28,7 +28,7 @@ int calculatePopulationFitness(
 bool probability(float minValue, float maxValue);
 int getSeed();
 int calculateFitness(int gene[G_SIZE]);
-struct childPair crossover(struct individual parent1, 
+struct childPair crossover(struct individual parent1,
 						struct individual parent2);
 void createNewPopulation(struct individual *oldPopulation, struct individual *newPopulation);
 struct individual createIndividual(int gene[G_SIZE]);
@@ -73,26 +73,26 @@ int main(void){
 	printf("Pre selection: %d\n",calculatePopulationFitness(population, sizeof(population)/sizeof(population[0])));
 	//selectFittest(population, offspring);
 	printf("Post selection: %d\n",calculatePopulationFitness(population, sizeof(population)/sizeof(population[0])));
-	
+
 	for(i = 0; i < GENERATIONS; i++){
 		int j = 0;
 		//Switch around to make more semantic sense
 		memcpy(newPopulation, population, sizeof(struct individual)*P_SIZE);
 		createNewPopulation(newPopulation, population);
-		selectFittest(newPopulation, population);
+		//selectFittest(newPopulation, population);
 
-		fprintf(csv, "\n %d, %d", calculatePopulationFitness(&newPopulation, 
+		fprintf(csv, "\n %d, %d", calculatePopulationFitness(&newPopulation,
 						sizeof(newPopulation)/sizeof(struct individual)),
-						calculatePopulationFitness(&newPopulation, 
+						calculatePopulationFitness(&newPopulation,
 						sizeof(newPopulation)/sizeof(struct individual))/P_SIZE);
-		if((i % 50) == 0){		
+		if((i % 50) == 0){
 			printf("Completed: %2.2f\%\n", ((float)i/(float)GENERATIONS)*100.0);
 		}
 	}
 
 	fclose(csv);
 
-	printf("After %d generations: %d\n", (int)GENERATIONS, calculatePopulationFitness(&newPopulation, 
+	printf("After %d generations: %d\n", (int)GENERATIONS, calculatePopulationFitness(&newPopulation,
 						sizeof(newPopulation)/sizeof(struct individual)));
 
 }
@@ -111,10 +111,10 @@ int calculatePopulationFitness(
 }
 
 bool probability(float minValue, float maxValue){
-	bool retVal = false;		
+	bool retVal = false;
 	int randomNumber = rand()%(int)100;
 	// Check if value lands between bounds
-	if((randomNumber > minValue) && (randomNumber < maxValue)){
+	if((randomNumber >= minValue) && (randomNumber <= maxValue)){
 		retVal = true;
 	}
 
@@ -151,7 +151,7 @@ int calculateFitness(int gene[G_SIZE]){
 	return fitness;
 }
 
-struct childPair crossover(struct individual parent1, 
+struct childPair crossover(struct individual parent1,
 						struct individual parent2){
 	struct childPair children;
 	int splitPoint = rand()%G_SIZE;
@@ -185,7 +185,7 @@ void createNewPopulation(struct individual *oldPopulation, struct individual *ne
 		struct childPair temp;
 		int i = 0;
 		for(i = 0; i < P_SIZE; ++i){
-			//printf("1: %d\n", i);
+
 			int p1 = tournamentSelection(oldPopulation, T_SIZE, P_SIZE);
 			int p2 = tournamentSelection(oldPopulation, T_SIZE, P_SIZE);
 
@@ -221,12 +221,12 @@ void selectFittest(struct individual *oldPopulation, struct individual *newPopul
 int tournamentSelection(struct individual *population, int tournamentSize, int populationSize){
 	int best = NULL;
 	int challengerIndex = 0;
-	int i = 0;	
-	
+	int i = 0;
+
 	// Select tournament pool for this iteration
 	for(i = 0; i < tournamentSize; ++i){
 		challengerIndex = rand()%populationSize;
-		if((best == NULL) || (population[challengerIndex].fitness > population[best].fitness)){
+		if((best == NULL) || (population[challengerIndex].fitness >= population[best].fitness)){
 			best = challengerIndex;
 		}
 	}
@@ -242,9 +242,7 @@ void mutateIndividual(struct individual individual){
 		if(probability(0, MT_PROB)){
 		//printf("%d ",i);
 			int randomIndex = rand()%c_length;
-
 			individual.gene[randomIndex] = 1 - individual.gene[randomIndex];
-
 		}
 	}
 
