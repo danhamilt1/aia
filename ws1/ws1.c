@@ -6,15 +6,13 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#define ARC4RANDOM_MAX      0x100000000
-
-#define GENERATIONS 20
-#define P_SIZE 50
-#define G_SIZE 10
-#define T_SIZE 5
-#define CV_PROB 0.7 // Crossover probability
-#define MT_PROB 0.02 // Mutation probability
-#define BIAS 1.0
+#define GENERATIONS 1000
+#define P_SIZE 500
+#define G_SIZE 1000
+#define T_SIZE 500
+#define CV_PROB 10 // Crossover probability
+#define MT_PROB 70 // Mutation probability
+//#define BIAS 1.0
 
 struct individual{
 	int gene[G_SIZE];
@@ -87,7 +85,9 @@ int main(void){
 						sizeof(newPopulation)/sizeof(struct individual)),
 						calculatePopulationFitness(&newPopulation, 
 						sizeof(newPopulation)/sizeof(struct individual))/P_SIZE);
-
+		if((i % 50) == 0){		
+			printf("Completed: %2.2f\%\n", ((float)i/(float)GENERATIONS)*100.0);
+		}
 	}
 
 	fclose(csv);
@@ -111,12 +111,8 @@ int calculatePopulationFitness(
 }
 
 bool probability(float minValue, float maxValue){
-	double randomNumber = ((double)arc4random() / ARC4RANDOM_MAX);
-	// double val = ((double)arc4random() / ARC4RANDOM_MAX);
-	bool retVal = false;
-	randomNumber = (1.0/randomNumber);
-
-	printf("%f\n", randomNumber);
+	bool retVal = false;		
+	int randomNumber = rand()%(int)100;
 	// Check if value lands between bounds
 	if((randomNumber > minValue) && (randomNumber < maxValue)){
 		retVal = true;
@@ -241,10 +237,10 @@ int tournamentSelection(struct individual *population, int tournamentSize, int p
 
 void mutateIndividual(struct individual individual){
 	int c_length = sizeof(individual.gene)/sizeof(individual.gene[0]);
-
+	//printf("\nMutations: ");
 	for(int i = 0; i < c_length; i++){
-		if(probability(0.0, MT_PROB)){
-			printf("%d Mutation happened\n", i);
+		if(probability(0, MT_PROB)){
+		//printf("%d ",i);
 			int randomIndex = rand()%c_length;
 
 			individual.gene[randomIndex] = 1 - individual.gene[randomIndex];
