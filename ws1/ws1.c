@@ -11,7 +11,7 @@
 #define G_SIZE 50
 #define T_SIZE 20
 #define CV_PROB 70 // Crossover probability
-#define MT_PROB 1 // Mutation probability
+#define MT_PROB 10 // Mutation probability
 //#define BIAS 1.0
 
 struct individual{
@@ -52,7 +52,7 @@ int main(void){
 
 	srand(getSeed());
 
-	//Set initial population
+	//Set-up initial population
 	for(i = 0;i < P_SIZE; ++i){
 		for(j = 0;j < G_SIZE; ++j){
 			population[i].gene[j] = rand()%2;
@@ -62,20 +62,19 @@ int main(void){
 
 	}
 
-	//Set fitness of an individual based on 1's in the array
+	//Initialise the fitness of all new individuals in the population
 	for(i = 0; i < P_SIZE; ++i){
 		for(j = 0; j < G_SIZE; ++j){
 			if(population[i].gene[j]){
-				population[i].fitness++;
+				++population[i].fitness;
 			}
 		}
 	}
 	printf("Initial population: %d\n",calculatePopulationFitness(population, sizeof(population)/sizeof(population[0])));
 
 
-	for(i = 0; i < GENERATIONS; i++){
+	for(i = 0; i < GENERATIONS; ++i){
 		int j = 0;
-		//Switch around to make more semantic sense
 		memcpy(newPopulation, population, sizeof(struct individual)*P_SIZE);
 		createNewPopulation(newPopulation, population);
 
@@ -110,7 +109,7 @@ int calculatePopulationFitness(
 
 bool probability(float minValue, float maxValue){
 	bool retVal = false;
-	int randomNumber = rand()%(int)100;
+	int randomNumber = rand()%(int)1000;
 	// Check if value lands between bounds
 	if((randomNumber >= minValue) && (randomNumber <= maxValue)){
 		retVal = true;
@@ -184,10 +183,12 @@ void createNewPopulation(struct individual *oldPopulation, struct individual *ne
 		int i = 0;
 		for(i = 0; i < P_SIZE; ++i){
 
+			//Carry out 2 tournaments to select 2 parents for mating
 			int p1 = tournamentSelection(oldPopulation, T_SIZE, P_SIZE);
 			int p2 = tournamentSelection(oldPopulation, T_SIZE, P_SIZE);
 
 			temp = crossover(oldPopulation[p1],oldPopulation[p2]);
+
 			mutateIndividual(&temp.child[0]);
 			newPopulation[i] = temp.child[0];
 			//printf("\ncopy:   ");
@@ -239,20 +240,12 @@ int tournamentSelection(struct individual *population, int tournamentSize, int p
 
 void mutateIndividual(struct individual *individual){
 	int c_length = sizeof(individual->gene)/sizeof(individual->gene[0]);
-	//printf("\nMutations: ");
 	for(int i = 0; i < c_length; ++i){
 		if(probability(0, MT_PROB)){
-	//	printf("%d ",i);
 			int randomIndex = rand()%c_length;
-			//printf("\nbefore: ");
-			//for(int j = 0; j < c_length; ++j){
-			//	printf("%d",individual->gene[j]);
-			//}
+			// Flip bit
 			individual->gene[randomIndex] = 1 - individual->gene[randomIndex];
-			//printf("\nafter:  ");
-			//for(int j = 0; j < c_length; ++j){
-			//	printf("%d",individual->gene[j]);
-			//}
+			printf("Mutation happened!\n");
 		}
 	}
 
