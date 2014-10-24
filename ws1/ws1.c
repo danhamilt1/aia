@@ -5,15 +5,17 @@
 #include <time.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
 
 #define GENERATIONS 50
-#define P_SIZE 50
-#define G_SIZE 50
-#define T_SIZE 10
+#define P_SIZE 100
+#define G_SIZE 64
+#define T_SIZE 2
 #define PROB_ACC 1000
-#define CV_PROB 600 // Crossover probability
-#define MT_PROB 10 // Mutation probability
-//#define BIAS 1.0
+#define CV_PROB 700 // Crossover probability
+#define MT_PROB (1/P_SIZE + 1/G_SIZE)/2 // Mutation probability
+
+#define DATA_FILE "data1.txt"
 
 struct individual{
 	int gene[G_SIZE];
@@ -22,6 +24,11 @@ struct individual{
 
 struct childPair{
 	struct individual child[2];
+};
+
+struct ioData{
+	char input[7];
+	int output;
 };
 
 int calculatePopulationFitness(
@@ -41,9 +48,15 @@ int selectBestFromPopulation(struct individual* population);
 int getBestIndex(struct individual* population);
 int getWorstIndex(struct individual* population);
 
-int main(void){
-	FILE *csv;
+struct ioData data_test[G_SIZE];
 
+int main(void){
+	FILE *f_csv;
+	FILE *f_data;
+	char input_test[255];
+	char *record, *line;
+
+	// TIDY THIS UP
 	int i = 0;
 	int j = 0;
 
@@ -51,8 +64,25 @@ int main(void){
 	struct individual offspring[P_SIZE];
 	struct individual population[P_SIZE];
 
-	csv = fopen("history.csv", "w");
-	fprintf(csv, "TOTAL FITNESS, MEAN,");
+	f_csv = fopen("history.csv", "w");
+	f_data = fopen(DATA_FILE, "r");
+
+	i = 0;
+	while((line = fgets(input_test, 255, f_data)) != NULL){
+		record = strtok(line, " ");
+		strcpy(data_test[i].input, record);
+		//printf("A: %s", data_test[i].input);
+
+		record = strtok(NULL, " ");
+		data_test[i].output = atoi(record);
+		//printf(" B: %d\n", data_test[i].output);
+
+		++i;
+	}
+
+	fclose(f_data);
+
+	fprintf(f_csv, "BEST FITNESS, MEAN,");
 
 	srand(getSeed());
 
@@ -81,21 +111,33 @@ int main(void){
 		int j = 0;
 		memcpy(newPopulation, population, sizeof(struct individual)*P_SIZE);
 		createNewPopulation(newPopulation, population);
-
-		fprintf(csv, "\n %d, %d", selectBestFromPopulation(&newPopulation),
-						calculatePopulationFitness(&newPopulation,
-						sizeof(newPopulation)/sizeof(struct individual))/P_SIZE);
+		selectBestFromPreviousPopulation(newPopulation, population);
+		fprintf(f_csv, "\n %d, %d", selectBestFromPopulation(&newPopulation),
+						calculatePopulationFitness(&newPopulation,P_SIZE)/P_SIZE);
 		if((i % 50) == 0){
 			printf("Completed: %2.2f\%\n", ((float)i/(float)GENERATIONS)*100.0);
 		}
-		selectBestFromPreviousPopulation(newPopulation, population);
+
 	}
 
-	fclose(csv);
+	fclose(f_csv);
 
 	printf("\nAfter %d generations: %d\n", (int)GENERATIONS, calculatePopulationFitness(&population,
 						sizeof(newPopulation)/sizeof(struct individual)));
 
+	printf("data_file:          ");
+	for(i = 0; i < G_SIZE; i++){
+		printf("%d", data_test[i].output);
+	}
+	printf("\n");
+
+	printf("fittest individual: ");
+	for(i = 0; i < G_SIZE; i++){
+		printf("%d", newPopulation[getBestIndex(&newPopulation)].gene[i]);
+	}
+	printf("\n");
+
+	printf("fitness: %d\n", newPopulation[getBestIndex(&newPopulation)].fitness);
 
 
 }
@@ -107,6 +149,7 @@ int calculatePopulationFitness(
 
 	for(i = 0; i < arrSize; ++i){
 		totalFitness += population[i].fitness;
+		//printf("%d\n", population[i].fitness);
 	}
 
 
@@ -146,8 +189,8 @@ int calculateFitness(int gene[G_SIZE]){
 	int fitness = 0;
 
 	for(i = 0; i < G_SIZE; ++i){
-		if(gene[i]){
-			++fitness;
+		if(gene[i] == data_test[i].output){
+			fitness++;
 		}
 	}
 
@@ -283,19 +326,19 @@ void selectBestFromPreviousPopulation(struct individual* newPopulation, struct i
 
 		if(oldPopulation[bestOld].fitness > newPopulation[bestNew].fitness){
 			int worstIndex = getWorstIndex(newPopulation);
-				for(i = 0; i < G_SIZE; ++i){
+				/*for(i = 0; i < G_SIZE; ++i){
 					printf("%d",oldPopulation[bestOld].gene[i]);
 				}
 				printf("\n");
 				for(i = 0; i < G_SIZE; ++i){
 					printf("%d",newPopulation[worstIndex].gene[i]);
 				}
-				printf("\n");
+				printf("\n");*/
 			memcpy(&newPopulation[worstIndex], &oldPopulation[bestOld], sizeof(oldPopulation[bestOld]));
-				for(i = 0; i < G_SIZE; ++i){
+				/*for(i = 0; i < G_SIZE; ++i){
 					printf("%d",newPopulation[worstIndex].gene[i]);
 				}
-				printf("\n");
+				printf("\n");*/
 
 		}
 }
@@ -319,7 +362,7 @@ int getWorstIndex(struct individual* population){
 
 	for(i = 0; i < P_SIZE; i++){
 		if((worst == NULL) || (population[i].fitness <= population[worst].fitness)){
-			printf("Worse fitness: %d\n", population[i].fitness);
+			//printf("Worse fitness: %d\n", population[i].fitness);
 			worst = i;
 		}
 	}
