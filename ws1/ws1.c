@@ -8,9 +8,9 @@
 #include <string.h>
 
 #define GENERATIONS 50
-#define P_SIZE 100
+#define P_SIZE 1000
 #define G_SIZE 64
-#define T_SIZE 2
+#define T_SIZE 10
 #define PROB_ACC 1000
 #define CV_PROB 700 // Crossover probability
 #define MT_PROB (1/P_SIZE + 1/G_SIZE)/2 // Mutation probability
@@ -44,7 +44,7 @@ void selectFittest(struct individual *oldPopulation, struct individual *newPopul
 int tournamentSelection(struct individual *population, int tournamentSize, int populationSize);
 void mutateIndividual(struct individual *individual);
 void selectBestFromPreviousPopulation(struct individual* newPopulation, struct individual* oldPopulation);
-int selectBestFromPopulation(struct individual* population);
+//int selectBestFromPopulation(struct individual* population);
 int getBestIndex(struct individual* population);
 int getWorstIndex(struct individual* population);
 
@@ -112,8 +112,12 @@ int main(void){
 		memcpy(newPopulation, population, sizeof(struct individual)*P_SIZE);
 		createNewPopulation(newPopulation, population);
 		selectBestFromPreviousPopulation(newPopulation, population);
-		fprintf(f_csv, "\n %d, %d", selectBestFromPopulation(&newPopulation),
+
+
+		fprintf(f_csv, "\n %d, %d", newPopulation[getBestIndex(newPopulation)].fitness,
 						calculatePopulationFitness(&newPopulation,P_SIZE)/P_SIZE);
+
+
 		if((i % 50) == 0){
 			printf("Completed: %2.2f\%\n", ((float)i/(float)GENERATIONS)*100.0);
 		}
@@ -347,7 +351,7 @@ int getBestIndex(struct individual* population){
 	int best = NULL;
 	int i = 0;
 
-	for(i = 0; i < P_SIZE; i++){
+	for(i = 0; i < P_SIZE; ++i){
 		if((best == NULL) || (population[i].fitness >= population[best].fitness)){
 			best = i;
 		}
@@ -360,7 +364,7 @@ int getWorstIndex(struct individual* population){
 	int worst = NULL;
 	int i = 0;
 
-	for(i = 0; i < P_SIZE; i++){
+	for(i = 0; i < P_SIZE; ++i){
 		if((worst == NULL) || (population[i].fitness <= population[worst].fitness)){
 			//printf("Worse fitness: %d\n", population[i].fitness);
 			worst = i;
@@ -368,16 +372,4 @@ int getWorstIndex(struct individual* population){
 	}
 
 	return worst;
-}
-
-int selectBestFromPopulation(struct individual* population){
-	int best = NULL;
-	int i = 0;
-		for(i = 0; i < P_SIZE; ++i){
-
-			if((best == NULL) || (population[i].fitness >= population[best].fitness)){
-				best = population[i].fitness;
-			}
-		}
-	return best;
 }
