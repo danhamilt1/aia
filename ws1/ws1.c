@@ -7,12 +7,12 @@
 #include <unistd.h>
 #include <string.h>
 
-#define GENERATIONS 50
-#define P_SIZE 1000
+#define GENERATIONS 200
+#define P_SIZE 50
 #define G_SIZE 64
 #define T_SIZE 10
 #define PROB_ACC 1000
-#define CV_PROB 700 // Crossover probability
+#define CV_PROB 600 // Crossover probability
 #define MT_PROB (1/P_SIZE + 1/G_SIZE)/2 // Mutation probability
 
 #define DATA_FILE "data1.txt"
@@ -27,7 +27,7 @@ struct childPair{
 };
 
 struct ioData{
-	char input[7];
+	char input[12];
 	int output;
 };
 
@@ -47,14 +47,12 @@ void selectBestFromPreviousPopulation(struct individual* newPopulation, struct i
 //int selectBestFromPopulation(struct individual* population);
 int getBestIndex(struct individual* population);
 int getWorstIndex(struct individual* population);
+void readInData();
 
 struct ioData data_test[G_SIZE];
 
 int main(void){
 	FILE *f_csv;
-	FILE *f_data;
-	char input_test[255];
-	char *record, *line;
 
 	// TIDY THIS UP
 	int i = 0;
@@ -64,23 +62,9 @@ int main(void){
 	struct individual offspring[P_SIZE];
 	struct individual population[P_SIZE];
 
+	readInData();
+
 	f_csv = fopen("history.csv", "w");
-	f_data = fopen(DATA_FILE, "r");
-
-	i = 0;
-	while((line = fgets(input_test, 255, f_data)) != NULL){
-		record = strtok(line, " ");
-		strcpy(data_test[i].input, record);
-		//printf("A: %s", data_test[i].input);
-
-		record = strtok(NULL, " ");
-		data_test[i].output = atoi(record);
-		//printf(" B: %d\n", data_test[i].output);
-
-		++i;
-	}
-
-	fclose(f_data);
 
 	fprintf(f_csv, "BEST FITNESS, MEAN,");
 
@@ -104,13 +88,14 @@ int main(void){
 			}
 		}
 	}
-	printf("Initial population: %d\n",calculatePopulationFitness(population, sizeof(population)/sizeof(population[0])));
+	memcpy(newPopulation, population, sizeof(struct individual)*P_SIZE);
+	printf("Initial population: %d\n",calculatePopulationFitness(newPopulation, sizeof(population)/sizeof(newPopulation[0])));
 
 
 	for(i = 0; i < GENERATIONS; ++i){
 		int j = 0;
-		memcpy(newPopulation, population, sizeof(struct individual)*P_SIZE);
-		createNewPopulation(newPopulation, population);
+
+		createNewPopulation(population, newPopulation);
 		selectBestFromPreviousPopulation(newPopulation, population);
 
 
@@ -122,11 +107,12 @@ int main(void){
 			printf("Completed: %2.2f\%\n", ((float)i/(float)GENERATIONS)*100.0);
 		}
 
+		memcpy(population, newPopulation, sizeof(struct individual)*P_SIZE);
 	}
 
 	fclose(f_csv);
 
-	printf("\nAfter %d generations: %d\n", (int)GENERATIONS, calculatePopulationFitness(&population,
+	printf("\nAfter %d generations: %d\n", (int)GENERATIONS, calculatePopulationFitness(&newPopulation,
 						sizeof(newPopulation)/sizeof(struct individual)));
 
 	printf("data_file:          ");
@@ -372,4 +358,28 @@ int getWorstIndex(struct individual* population){
 	}
 
 	return worst;
+}
+
+void readInData(){
+	FILE *f_data;
+
+	char input_test[15];
+	char *record, *line;
+
+	f_data = fopen(DATA_FILE, "r");
+
+	int i = 0;
+	while((line = fgets(input_test, 15, f_data)) != NULL){
+		record = strtok(line, " ");
+		strcpy(data_test[i].input, record);
+		//printf("A: %s", data_test[i].input);
+
+		record = strtok(NULL, " ");
+		data_test[i].output = atoi(record);
+		//printf(" B: %d\n", data_test[i].output);
+
+		++i;
+	}
+
+	fclose(f_data);
 }
