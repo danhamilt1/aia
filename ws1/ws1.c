@@ -9,13 +9,13 @@
 
 #define GENERATIONS 200
 #define P_SIZE 50
-#define G_SIZE 64
+#define G_SIZE 1024
 #define T_SIZE 10
 #define PROB_ACC 1000
 #define CV_PROB 600 // Crossover probability
 #define MT_PROB (1/P_SIZE + 1/G_SIZE)/2 // Mutation probability
 
-#define DATA_FILE "data1.txt"
+#define DATA_FILE "data2.txt"
 
 struct individual{
 	int gene[G_SIZE];
@@ -49,7 +49,7 @@ int getBestIndex(struct individual* population);
 int getWorstIndex(struct individual* population);
 void readInData();
 
-struct ioData data_test[G_SIZE];
+struct ioData *data_test;
 
 int main(void){
 	FILE *f_csv;
@@ -58,9 +58,11 @@ int main(void){
 	int i = 0;
 	int j = 0;
 
-	struct individual newPopulation[P_SIZE];
-	struct individual offspring[P_SIZE];
-	struct individual population[P_SIZE];
+  data_test = malloc(sizeof(struct ioData) * G_SIZE);
+
+	struct individual *newPopulation = malloc(sizeof(struct individual)*P_SIZE);
+	struct individual *offspring = malloc(sizeof(struct individual)*P_SIZE);
+	struct individual *population = malloc(sizeof(struct individual)*P_SIZE);
 
 	readInData();
 
@@ -363,13 +365,14 @@ int getWorstIndex(struct individual* population){
 void readInData(){
 	FILE *f_data;
 
-	char input_test[15];
+	char input_test[1024];
 	char *record, *line;
 
 	f_data = fopen(DATA_FILE, "r");
 
 	int i = 0;
-	while((line = fgets(input_test, 15, f_data)) != NULL){
+
+	while((line = fgets(input_test, 1024, f_data)) != NULL){
 		record = strtok(line, " ");
 		strcpy(data_test[i].input, record);
 		//printf("A: %s", data_test[i].input);
