@@ -7,9 +7,9 @@
 #include <unistd.h>
 #include <string.h>
 
-#define GENERATIONS 200
-#define P_SIZE 50
-#define G_SIZE 1024
+#define GENERATIONS 300
+#define P_SIZE 5000
+#define G_SIZE 2048
 #define T_SIZE 10
 #define PROB_ACC 1000
 #define CV_PROB 600 // Crossover probability
@@ -27,7 +27,7 @@ struct childPair{
 };
 
 struct ioData{
-	char input[12];
+	char input[15];
 	int output;
 };
 
@@ -64,6 +64,8 @@ int main(void){
 	struct individual *offspring = malloc(sizeof(struct individual)*P_SIZE);
 	struct individual *population = malloc(sizeof(struct individual)*P_SIZE);
 
+
+
 	readInData();
 
 	f_csv = fopen("history.csv", "w");
@@ -78,20 +80,13 @@ int main(void){
 			population[i].gene[j] = rand()%2;
 
 		}
-		population[i].fitness = 0;
-
+		population[i].fitness = calculateFitness(population[i].gene);
+		//printf("stored: %d\n", population[i].fitness);
 	}
 
-	//Initialise the fitness of all new individuals in the population
-	for(i = 0; i < P_SIZE; ++i){
-		for(j = 0; j < G_SIZE; ++j){
-			if(population[i].gene[j]){
-				++population[i].fitness;
-			}
-		}
-	}
 	memcpy(newPopulation, population, sizeof(struct individual)*P_SIZE);
-	printf("Initial population: %d\n",calculatePopulationFitness(newPopulation, sizeof(population)/sizeof(newPopulation[0])));
+
+	printf("Initial population: %d\n",calculatePopulationFitness(newPopulation, sizeof(*newPopulation)/sizeof(struct individual)));
 
 
 	for(i = 0; i < GENERATIONS; ++i){
@@ -102,8 +97,7 @@ int main(void){
 
 
 		fprintf(f_csv, "\n %d, %d", newPopulation[getBestIndex(newPopulation)].fitness,
-						calculatePopulationFitness(&newPopulation,P_SIZE)/P_SIZE);
-
+						calculatePopulationFitness(newPopulation,P_SIZE)/P_SIZE);
 
 		if((i % 50) == 0){
 			printf("Completed: %2.2f\%\n", ((float)i/(float)GENERATIONS)*100.0);
@@ -114,8 +108,8 @@ int main(void){
 
 	fclose(f_csv);
 
-	printf("\nAfter %d generations: %d\n", (int)GENERATIONS, calculatePopulationFitness(&newPopulation,
-						sizeof(newPopulation)/sizeof(struct individual)));
+	printf("\nAfter %d generations: %d\n", (int)GENERATIONS, calculatePopulationFitness(newPopulation,
+						sizeof(*newPopulation)/sizeof(struct individual)));
 
 	printf("data_file:          ");
 	for(i = 0; i < G_SIZE; i++){
@@ -125,11 +119,11 @@ int main(void){
 
 	printf("fittest individual: ");
 	for(i = 0; i < G_SIZE; i++){
-		printf("%d", newPopulation[getBestIndex(&newPopulation)].gene[i]);
+		printf("%d", newPopulation[getBestIndex(newPopulation)].gene[i]);
 	}
 	printf("\n");
 
-	printf("fitness: %d\n", newPopulation[getBestIndex(&newPopulation)].fitness);
+	printf("fitness: %d\n", newPopulation[getBestIndex(newPopulation)].fitness);
 
 
 }
@@ -141,10 +135,7 @@ int calculatePopulationFitness(
 
 	for(i = 0; i < arrSize; ++i){
 		totalFitness += population[i].fitness;
-		//printf("%d\n", population[i].fitness);
 	}
-
-
 	return totalFitness;
 }
 
@@ -182,10 +173,11 @@ int calculateFitness(int gene[G_SIZE]){
 
 	for(i = 0; i < G_SIZE; ++i){
 		if(gene[i] == data_test[i].output){
+			//printf("%d\n", data_test[i].output);
 			fitness++;
 		}
 	}
-
+	//printf("fitness: %d\n", fitness);
 	return fitness;
 }
 
@@ -232,12 +224,12 @@ void createNewPopulation(struct individual *oldPopulation, struct individual *ne
 
 			mutateIndividual(&temp.child[0]);
 			newPopulation[i] = temp.child[0];
-			//printf("\ncopy:   ");
-			//for(int j = 0; j < G_SIZE; ++j){
-			//	printf("%d",newPopulation[i].gene[j]);
-			//}
+			// printf("\ncopy:   ");
+			// for(int j = 0; j < G_SIZE; ++j){
+			// 	printf("%d",newPopulation[i].gene[j]);
+			// }
 			++i;
-			//printf("2: %d\n", i);
+			// printf("2: %d\n", i);
 			if(i!=P_SIZE){
 				mutateIndividual(&temp.child[1]);
 				newPopulation[i] = temp.child[1];
@@ -301,7 +293,7 @@ struct individual createIndividual(int gene[G_SIZE]){
 	}
 	printf("\n");
 
-	memcpy(newIndividual.gene, gene, sizeof(*gene)*10);
+	memcpy(newIndividual.gene, gene, sizeof(*gene)*G_SIZE);
 	newIndividual.fitness = calculateFitness(gene);
 
 	//for(i = 0; i < G_SIZE; ++i){
@@ -365,24 +357,22 @@ int getWorstIndex(struct individual* population){
 void readInData(){
 	FILE *f_data;
 
-	char input_test[1024];
+	char input_test[G_SIZE];
 	char *record, *line;
 
 	f_data = fopen(DATA_FILE, "r");
 
 	int i = 0;
 
-	while((line = fgets(input_test, 1024, f_data)) != NULL){
+	while((line = fgets(input_test, G_SIZE, f_data)) != NULL){
 		record = strtok(line, " ");
-		strcpy(data_test[i].input, record);
-		//printf("A: %s", data_test[i].input);
-
+		strncpy(data_test[i].input, record, sizeof(char)*12);//, sizeof(data_test[i].input));
+		//printf("A: %s\n", data_test[i].input);
 		record = strtok(NULL, " ");
 		data_test[i].output = atoi(record);
 		//printf(" B: %d\n", data_test[i].output);
-
+		//free(record);
 		++i;
 	}
-
 	fclose(f_data);
 }
