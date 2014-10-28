@@ -7,8 +7,8 @@
 #include <unistd.h>
 #include <string.h>
 
-#define GENERATIONS 300
-#define P_SIZE 5000
+#define GENERATIONS 1000
+#define P_SIZE 50
 #define G_SIZE 2048
 #define T_SIZE 10
 #define PROB_ACC 1000
@@ -27,11 +27,11 @@ struct childPair{
 };
 
 struct ioData{
-	char input[15];
+	int input[255];
 	int output;
 };
 
-int calculatePopulationFitness(
+long calculatePopulationFitness(
 	struct individual *population, int arrSize);
 bool probability(float minValue, float maxValue);
 int getSeed();
@@ -86,7 +86,7 @@ int main(void){
 
 	memcpy(newPopulation, population, sizeof(struct individual)*P_SIZE);
 
-	printf("Initial population: %d\n",calculatePopulationFitness(newPopulation, sizeof(*newPopulation)/sizeof(struct individual)));
+	printf("Initial population: %lu\n",calculatePopulationFitness(newPopulation, P_SIZE));
 
 
 	for(i = 0; i < GENERATIONS; ++i){
@@ -104,12 +104,13 @@ int main(void){
 		}
 
 		memcpy(population, newPopulation, sizeof(struct individual)*P_SIZE);
+
+
 	}
 
 	fclose(f_csv);
 
-	printf("\nAfter %d generations: %d\n", (int)GENERATIONS, calculatePopulationFitness(newPopulation,
-						sizeof(*newPopulation)/sizeof(struct individual)));
+	printf("\nAfter %d generations: %lu\n", (int)GENERATIONS, calculatePopulationFitness(newPopulation, P_SIZE));
 
 	printf("data_file:          ");
 	for(i = 0; i < G_SIZE; i++){
@@ -128,13 +129,15 @@ int main(void){
 
 }
 
-int calculatePopulationFitness(
+long calculatePopulationFitness(
 	struct individual *population, int arrSize){
 	int i = 0;
-	int totalFitness = 0;
+	long totalFitness = 0;
 
 	for(i = 0; i < arrSize; ++i){
-		totalFitness += population[i].fitness;
+		totalFitness = totalFitness + population[i].fitness;
+//		printf("fitness: %d\n", population[i].fitness);
+//		printf("total fitness: %lu", totalFitness);
 	}
 	return totalFitness;
 }
@@ -366,12 +369,18 @@ void readInData(){
 
 	while((line = fgets(input_test, G_SIZE, f_data)) != NULL){
 		record = strtok(line, " ");
-		strncpy(data_test[i].input, record, sizeof(char)*12);//, sizeof(data_test[i].input));
+		//strncpy(data_test[i].input, record, sizeof(char)*12);//, sizeof(data_test[i].input));
+
+		for(int j = 0; j < 11; j++){
+			data_test[i].input[j] = (record[j]-48);
+			printf("%lu", data_test[i].input[j]);
+		}
+		printf("\n");
+
 		//printf("A: %s\n", data_test[i].input);
 		record = strtok(NULL, " ");
 		data_test[i].output = atoi(record);
-		//printf(" B: %d\n", data_test[i].output);
-		//free(record);
+		printf(" B: %d\n", data_test[i].output);
 		++i;
 	}
 	fclose(f_data);
