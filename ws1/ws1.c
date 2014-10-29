@@ -1,58 +1,4 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <time.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <string.h>
-
-#define GENERATIONS 1000
-#define P_SIZE 10
-#define G_SIZE 6
-#define NO_RULES 2
-#define DATA_FILE_ROWS 64
-#define T_SIZE 10
-#define PROB_ACC 1000
-#define CV_PROB 600 // Crossover probability
-#define MT_PROB (1/P_SIZE + 1/G_SIZE)/2 // Mutation probability
-
-#define DATA_FILE "data1.txt"
-
-struct individual{
-	int gene[G_SIZE*NO_RULES];
-	int output[NO_RULES];
-	int fitness;
-};
-
-struct childPair{
-	struct individual child[2];
-};
-
-struct ioData{
-	int input[G_SIZE];
-	int output;
-};
-
-long calculatePopulationFitness(
-	struct individual *population, int arrSize);
-bool probability(float minValue, float maxValue);
-int getSeed();
-int calculateFitness(struct individual *individual);
-struct childPair crossover(struct individual parent1,
-						struct individual parent2);
-void createNewPopulation(struct individual *oldPopulation, struct individual *newPopulation);
-struct individual createIndividual(int gene[G_SIZE]);
-void selectFittest(struct individual *oldPopulation, struct individual *newPopulation);
-int tournamentSelection(struct individual *population, int tournamentSize, int populationSize);
-void mutateIndividual(struct individual *individual);
-void selectBestFromPreviousPopulation(struct individual* newPopulation, struct individual* oldPopulation);
-//int selectBestFromPopulation(struct individual* population);
-int getBestIndex(struct individual* population);
-int getWorstIndex(struct individual* population);
-void readInData();
-
-struct ioData *data_test;
+#include "ws1.h"
 
 int main(void){
 	FILE *f_csv;
@@ -64,7 +10,6 @@ int main(void){
   data_test = malloc(sizeof(struct ioData));
 
 	struct individual *newPopulation = malloc(sizeof(struct individual)*P_SIZE);
-	//struct individual *offspring = malloc(sizeof(struct individual)*P_SIZE);
 	struct individual *population = malloc(sizeof(struct individual)*P_SIZE);
 
 	readInData();
@@ -83,6 +28,7 @@ int main(void){
 		}
 		for(j = 0;j < NO_RULES; j++){
 			population[i].output[j] = rand()%2;
+			//printf("%d, ", population[i].output[j]);
 		}
 		population[i].fitness = calculateFitness(&population[i]);
 		//printf("stored: %d\n", population[i].fitness);
@@ -103,7 +49,7 @@ int main(void){
 		fprintf(f_csv, "\n %d, %d", newPopulation[getBestIndex(newPopulation)].fitness,
 						calculatePopulationFitness(newPopulation,P_SIZE)/P_SIZE);
 
-		if((i % 50) == 0){
+		if((i % 100) == 0){
 			printf("Completed: %2.2f\%\n", ((float)i/(float)GENERATIONS)*100.0);
 		}
 
@@ -123,6 +69,9 @@ int main(void){
 	printf("\n");
 
 	printf("fitness: %d\n", newPopulation[getBestIndex(newPopulation)].fitness);
+
+	checkHasLearned(&population[getBestIndex(population)]);
+
 
 
 	free(data_test);
@@ -176,12 +125,7 @@ int calculateFitness(struct individual *individual){
 	int fitness = 0;
 	int outputIndex = 0;
 
-	// for(i = 0; i < G_SIZE*NO_RULES; ++i){
-	// 	printf("%d", individual->gene[i]);
-	// }
-	// printf("\n");
-
-	for(i = 0; i < DATA_FILE_ROWS; ++i){
+	for(i = 0; i < TRAINING_ROWS; ++i){
 		outputIndex = 0;
 		for(int j = 0; j < G_SIZE*NO_RULES; ++j){
 			if((j!=0)&&((j%G_SIZE) == 0)){
@@ -191,9 +135,8 @@ int calculateFitness(struct individual *individual){
 				if(data_test[i].input[j%G_SIZE] == individual->gene[j]){
 					fitness++;
 				}
-				if(data_test[i].output != individual->output[outputIndex]){
-					fitness=0;
-				}
+			} else if (individual->gene[j]=='#'){
+				fitness++;
 			}
 
 		}
@@ -219,10 +162,18 @@ struct childPair crossover(struct individual parent1,
 			children.child[0].gene[i] = parent2.gene[i];
 			children.child[1].gene[i] = parent1.gene[i];
 		}
+		children.child[0].output[0] = parent2.output[0];
+		children.child[0].output[1] = parent2.output[1];
+		children.child[1].output[0] = parent1.output[0];
+		children.child[1].output[1] = parent1.output[1];
 		//("Cross occurred\n");
 	} else {
 		children.child[0] = parent1;
 		children.child[1] = parent2;
+		children.child[0].output[0] = parent1.output[0];
+		children.child[0].output[1] = parent1.output[1];
+		children.child[1].output[0] = parent2.output[0];
+		children.child[1].output[1] = parent2.output[1];
 		//printf("No Cross\n");
 	}
 
@@ -355,7 +306,7 @@ int getBestIndex(struct individual* population){
 	int i = 0;
 
 	for(i = 0; i < P_SIZE; ++i){
-		if((best == NULL) || (population[i].fitness >= population[best].fitness)){
+		if((best == NULL) || (population[i].fitness > population[best].fitness)){
 			best = i;
 		}
 	}
@@ -399,11 +350,57 @@ void readInData(){
 		//printf("A: %s\n", data_test[i].input);
 		record = strtok(NULL, " ");
 		data_test[i].output = atoi(record);
-		//printf(" B: %d\n", data_test[i].output);
+		printf(" B: %d\n", data_test[i].output);
 
 
 		++i;
 		data_test = realloc(data_test, sizeof(struct ioData)*(i+1));
 	}
 	fclose(f_data);
+}
+
+void checkHasLearned(struct individual *individual){
+	int i = 0;
+	int outputIndex = 0;
+	int fitness = 0;
+	bool passed = true;
+	int bestFit = 0;
+	int bestIndex = 0;
+
+	printf("1: %d 2: %d \n", individual->output[0], individual->output[1]);
+
+	while((i < TESTING_ROWS)){
+		outputIndex = 0;
+		fitness = 0;
+		bestIndex = 0;
+
+		for(int j = 0; j < G_SIZE*NO_RULES; ++j){
+			if((j!=0)&&((j%G_SIZE) == 0)){
+				outputIndex++;
+				fitness = 0;
+			}
+			if(individual->gene[j]!='#'){
+				if(data_test[i].input[j%G_SIZE] == individual->gene[j]){
+					fitness++;
+				}
+			} else {
+				fitness++;
+			}
+			if(fitness >= bestFit){
+				bestFit = fitness;
+				bestIndex = outputIndex;
+			}
+
+		}
+		printf("%d: %d\n", i, bestIndex);
+		if(data_test[i].output != individual->output[bestIndex]){
+			passed = false;
+			printf("Fail\n");
+		} else {
+			printf("Pass\n");
+		}
+
+		++i;
+
+  }
 }
