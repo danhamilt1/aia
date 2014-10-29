@@ -7,17 +7,17 @@
 #include <unistd.h>
 #include <string.h>
 
-#define GENERATIONS 10
-#define P_SIZE 50
-#define G_SIZE 11
-#define NO_RULES 1
-#define DATA_FILE_ROWS 2048
+#define GENERATIONS 1000
+#define P_SIZE 10
+#define G_SIZE 6
+#define NO_RULES 2
+#define DATA_FILE_ROWS 64
 #define T_SIZE 10
 #define PROB_ACC 1000
 #define CV_PROB 600 // Crossover probability
 #define MT_PROB (1/P_SIZE + 1/G_SIZE)/2 // Mutation probability
 
-#define DATA_FILE "data2.txt"
+#define DATA_FILE "data1.txt"
 
 struct individual{
 	int gene[G_SIZE*NO_RULES];
@@ -38,7 +38,7 @@ long calculatePopulationFitness(
 	struct individual *population, int arrSize);
 bool probability(float minValue, float maxValue);
 int getSeed();
-int calculateFitness(int gene[G_SIZE]);
+int calculateFitness(struct individual *individual);
 struct childPair crossover(struct individual parent1,
 						struct individual parent2);
 void createNewPopulation(struct individual *oldPopulation, struct individual *newPopulation);
@@ -74,14 +74,17 @@ int main(void){
 	fprintf(f_csv, "BEST FITNESS, MEAN,");
 
 	srand(getSeed());
-
 	//Set-up initial population
 	for(i = 0;i < P_SIZE; ++i){
+		int vals[3] = {0,1,'#'};
 		for(j = 0;j < G_SIZE*NO_RULES; ++j){
-			population[i].gene[j] = rand()%2;
-
+			population[i].gene[j] = vals[rand()%3];
+			//printf("%d", population[i].gene[j]);
 		}
-		population[i].fitness = calculateFitness(population[i].gene);
+		for(j = 0;j < NO_RULES; j++){
+			population[i].output[j] = rand()%2;
+		}
+		population[i].fitness = calculateFitness(&population[i]);
 		//printf("stored: %d\n", population[i].fitness);
 	}
 
@@ -112,12 +115,6 @@ int main(void){
 	fclose(f_csv);
 
 	printf("\nAfter %d generations: %lu\n", (int)GENERATIONS, calculatePopulationFitness(newPopulation, P_SIZE));
-
-	printf("data_file:          ");
-	for(i = 0; i < G_SIZE*NO_RULES; i++){
-		printf("%d", data_test[i].output);
-	}
-	printf("\n");
 
 	printf("fittest individual: ");
 	for(i = 0; i < G_SIZE*NO_RULES; i++){
@@ -174,17 +171,35 @@ int getSeed(){
 	return randomInt;
 }
 
-int calculateFitness(int gene[G_SIZE*NO_RULES]){
+int calculateFitness(struct individual *individual){
 	int i = 0;
 	int fitness = 0;
+	int outputIndex = 0;
 
-	for(i = 0; i < G_SIZE*NO_RULES; ++i){
-		if(gene[i] == data_test[i].output){
-			//printf("%d\n", data_test[i].output);
-			fitness++;
+	// for(i = 0; i < G_SIZE*NO_RULES; ++i){
+	// 	printf("%d", individual->gene[i]);
+	// }
+	// printf("\n");
+
+	for(i = 0; i < DATA_FILE_ROWS; ++i){
+		outputIndex = 0;
+		for(int j = 0; j < G_SIZE*NO_RULES; ++j){
+			if((j!=0)&&((j%G_SIZE) == 0)){
+				outputIndex++;
+			}
+			if(individual->gene[j]!='#'){
+				if(data_test[i].input[j%G_SIZE] == individual->gene[j]){
+					fitness++;
+				}
+				if(data_test[i].output != individual->output[outputIndex]){
+					fitness=0;
+				}
+			}
+
 		}
+
 	}
-	//printf("fitness: %d\n", fitness);
+
 	return fitness;
 }
 
@@ -211,8 +226,8 @@ struct childPair crossover(struct individual parent1,
 		//printf("No Cross\n");
 	}
 
-	children.child[0].fitness = calculateFitness(children.child[0].gene);
-	children.child[1].fitness = calculateFitness(children.child[1].gene);
+	// children.child[0].fitness = calculateFitness(children.child[0].gene);
+	// children.child[1].fitness = calculateFitness(children.child[1].gene);
 
 	return children;
 
@@ -231,15 +246,14 @@ void createNewPopulation(struct individual *oldPopulation, struct individual *ne
 
 			mutateIndividual(&temp.child[0]);
 			newPopulation[i] = temp.child[0];
-			// printf("\ncopy:   ");
-			// for(int j = 0; j < G_SIZE*NO_RULES; ++j){
-			// 	printf("%d",newPopulation[i].gene[j]);
-			// }
+			newPopulation[i].fitness = calculateFitness(&newPopulation[i]);
+
 			++i;
-			// printf("2: %d\n", i);
+
 			if(i!=P_SIZE){
 				mutateIndividual(&temp.child[1]);
 				newPopulation[i] = temp.child[1];
+				newPopulation[i].fitness = calculateFitness(&newPopulation[i]);
 			}
 		}
 }
@@ -284,7 +298,9 @@ void mutateIndividual(struct individual *individual){
 		if(probability(0, MT_PROB)){
 			int randomIndex = rand()%c_length;
 			// Flip bit
-			individual->gene[randomIndex] = 1 - individual->gene[randomIndex];
+			if(individual->gene[randomIndex] != '#'){
+				individual->gene[randomIndex] = 1 - individual->gene[randomIndex];
+			}
 			//printf("Mutation happened!\n");
 		}
 	}
@@ -301,7 +317,7 @@ struct individual createIndividual(int gene[G_SIZE*NO_RULES]){
 	printf("\n");
 
 	memcpy(newIndividual.gene, gene, sizeof(*gene)*G_SIZE*NO_RULES);
-	newIndividual.fitness = calculateFitness(gene);
+	newIndividual.fitness = calculateFitness(&newIndividual);
 
 	//for(i = 0; i < G_SIZE*NO_RULES; ++i){
 	//	printf("%d",newIndividual.gene[i]);
@@ -376,14 +392,14 @@ void readInData(){
 
 		for(int j = 0; j < G_SIZE; j++){
 			data_test[i].input[j] = (record[j]-48);
-			printf("%lu", data_test[i].input[j]);
+			//printf("%lu", data_test[i].input[j]);
 		}
-		printf("\n");
+		//printf("\n");
 
 		//printf("A: %s\n", data_test[i].input);
 		record = strtok(NULL, " ");
 		data_test[i].output = atoi(record);
-		printf(" B: %d\n", data_test[i].output);
+		//printf(" B: %d\n", data_test[i].output);
 
 
 		++i;
