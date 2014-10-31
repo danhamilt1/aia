@@ -122,28 +122,60 @@ int getSeed(){
 
 int calculateFitness(struct individual *individual){
 	int i = 0;
+	int j = 0;
 	int fitness = 0;
 	int outputIndex = 0;
+	bool match = true;
 
 	for(i = 0; i < TRAINING_ROWS; ++i){
 		outputIndex = 0;
-		for(int j = 0; j < G_SIZE*NO_RULES; ++j){
+
+		while((j < G_SIZE*NO_RULES) && (match == true)){
 			if((j!=0)&&((j%G_SIZE) == 0)){
 				outputIndex++;
 			}
+
 			if(individual->gene[j]!='#'){
 				if(data_test[i].input[j%G_SIZE] == individual->gene[j]){
-					fitness++;
+					match = true;
+				} else {
+					match = false;
+					break;
 				}
-			} else if (individual->gene[j]=='#'){
-				fitness++;
 			}
-
+			++j;
 		}
 
+		if(match == false){
+			match = true;
+
+			// getchar();
+		} else if (data_test[i].output == individual->output[outputIndex]){
+			// int k = 0;
+			// for(k = 0; k < G_SIZE*NO_RULES; k++){
+			// 	if( individual->gene[k] != 35){
+			// 		printf("%d", individual->gene[k]);
+			// 	} else
+			// 	{
+			// 		printf("#");
+			// 	}
+			// }
+			// printf("\n");
+			// for(k = 0; k < G_SIZE*NO_RULES; k++){
+			// 	printf("%d", data_test[i].input[k%G_SIZE]);
+			// }
+			// printf("\n");
+			// printf("data Output: %d\n", data_test[i].output);
+			// printf("expected Output: %d\n", individual->output[outputIndex]);
+			// printf("Matching rule : %d\n", outputIndex);
+			++fitness;
+			// printf("fitness: %d", fitness);
+			// printf("\n\n");
+		}
 	}
 
 	return fitness;
+
 }
 
 struct childPair crossover(struct individual parent1,
@@ -196,6 +228,7 @@ void createNewPopulation(struct individual *oldPopulation, struct individual *ne
 			temp = crossover(oldPopulation[p1],oldPopulation[p2]);
 
 			mutateIndividual(&temp.child[0]);
+			mutateOutput(&temp.child[0]);
 			newPopulation[i] = temp.child[0];
 			newPopulation[i].fitness = calculateFitness(&newPopulation[i]);
 
@@ -203,6 +236,7 @@ void createNewPopulation(struct individual *oldPopulation, struct individual *ne
 
 			if(i!=P_SIZE){
 				mutateIndividual(&temp.child[1]);
+				mutateOutput(&temp.child[1]);
 				newPopulation[i] = temp.child[1];
 				newPopulation[i].fitness = calculateFitness(&newPopulation[i]);
 			}
@@ -245,13 +279,28 @@ int tournamentSelection(struct individual *population, int tournamentSize, int p
 
 void mutateIndividual(struct individual *individual){
 	int c_length = sizeof(individual->gene)/sizeof(individual->gene[0]);
+	int vals[3] = {0,1,'#'};
 	for(int i = 0; i < c_length; ++i){
 		if(probability(0, MT_PROB)){
 			int randomIndex = rand()%c_length;
-			// Flip bit
-			if(individual->gene[randomIndex] != '#'){
-				individual->gene[randomIndex] = 1 - individual->gene[randomIndex];
-			}
+
+			individual->gene[randomIndex] = vals[rand()%3];
+
+			//printf("Mutation happened!\n");
+		}
+	}
+
+}
+
+void mutateOutput(struct individual *individual){
+	int c_length = sizeof(individual->gene)/sizeof(individual->gene[0]);
+	int vals[3] = {0,1,'#'};
+	for(int i = 0; i < NO_RULES; ++i){
+		if(probability(0, MT_PROB)){
+			int randomIndex = rand()%NO_RULES;
+
+			individual->gene[randomIndex] = 1 - individual->gene[randomIndex];
+
 			//printf("Mutation happened!\n");
 		}
 	}
@@ -343,15 +392,10 @@ void readInData(){
 
 		for(int j = 0; j < G_SIZE; j++){
 			data_test[i].input[j] = (record[j]-48);
-			//printf("%lu", data_test[i].input[j]);
 		}
-		//printf("\n");
 
-		//printf("A: %s\n", data_test[i].input);
 		record = strtok(NULL, " ");
 		data_test[i].output = atoi(record);
-		printf(" B: %d\n", data_test[i].output);
-
 
 		++i;
 		data_test = realloc(data_test, sizeof(struct ioData)*(i+1));
@@ -361,46 +405,36 @@ void readInData(){
 
 void checkHasLearned(struct individual *individual){
 	int i = 0;
-	int outputIndex = 0;
+	int j = 0;
 	int fitness = 0;
-	bool passed = true;
-	int bestFit = 0;
-	int bestIndex = 0;
+	int outputIndex = 0;
+	bool match = true;
 
-	printf("1: %d 2: %d \n", individual->output[0], individual->output[1]);
-
-	while((i < TESTING_ROWS)){
+	for(i = 0; i < TRAINING_ROWS; ++i){
 		outputIndex = 0;
-		fitness = 0;
-		bestIndex = 0;
 
-		for(int j = 0; j < G_SIZE*NO_RULES; ++j){
-			if((j!=0)&&((j%G_SIZE) == 0)){
-				outputIndex++;
-				fitness = 0;
-			}
-			if(individual->gene[j]!='#'){
-				if(data_test[i].input[j%G_SIZE] == individual->gene[j]){
-					fitness++;
+		while((j < G_SIZE*NO_RULES)){
+			if((j!=0)&&((j%G_SIZE) == 0)&&(match == true)){
+				if(individual->output[outputIndex] == data_test[i].output){
+					printf("YAY\n");
+				} else {
+					printf("NAY\n");
 				}
 			} else {
-				fitness++;
-			}
-			if(fitness >= bestFit){
-				bestFit = fitness;
-				bestIndex = outputIndex;
+				outputIndex++;
 			}
 
+			if(individual->gene[j]!='#'){
+				if(data_test[i].input[j%G_SIZE] == individual->gene[j]){
+					match = true;
+				} else {
+					match = false;
+				}
+			}
+			++j;
 		}
-		printf("%d: %d\n", i, bestIndex);
-		if(data_test[i].output != individual->output[bestIndex]){
-			passed = false;
-			printf("Fail\n");
-		} else {
-			printf("Pass\n");
-		}
+	}
 
-		++i;
+	printf("%d%d\n", individual->output[0], individual->output[1]);
 
-  }
 }
