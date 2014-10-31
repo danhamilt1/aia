@@ -129,7 +129,8 @@ int calculateFitness(struct individual *individual){
 
 	for(i = 0; i < TRAINING_ROWS; ++i){
 		outputIndex = 0;
-
+		j = 0;
+		match = true;
 		while((j < G_SIZE*NO_RULES) && (match == true)){
 			if((j!=0)&&((j%G_SIZE) == 0)){
 				outputIndex++;
@@ -143,34 +144,19 @@ int calculateFitness(struct individual *individual){
 					break;
 				}
 			}
+
+
+			if(((j+1)%G_SIZE) == 0){
+				if(match == false){
+					match = true;
+
+					// getchar();
+				} else if (data_test[i].output == individual->output[outputIndex]){
+					++fitness;
+					break;
+				}
+			}
 			++j;
-		}
-
-		if(match == false){
-			match = true;
-
-			// getchar();
-		} else if (data_test[i].output == individual->output[outputIndex]){
-			// int k = 0;
-			// for(k = 0; k < G_SIZE*NO_RULES; k++){
-			// 	if( individual->gene[k] != 35){
-			// 		printf("%d", individual->gene[k]);
-			// 	} else
-			// 	{
-			// 		printf("#");
-			// 	}
-			// }
-			// printf("\n");
-			// for(k = 0; k < G_SIZE*NO_RULES; k++){
-			// 	printf("%d", data_test[i].input[k%G_SIZE]);
-			// }
-			// printf("\n");
-			// printf("data Output: %d\n", data_test[i].output);
-			// printf("expected Output: %d\n", individual->output[outputIndex]);
-			// printf("Matching rule : %d\n", outputIndex);
-			++fitness;
-			// printf("fitness: %d", fitness);
-			// printf("\n\n");
 		}
 	}
 
@@ -194,10 +180,20 @@ struct childPair crossover(struct individual parent1,
 			children.child[0].gene[i] = parent2.gene[i];
 			children.child[1].gene[i] = parent1.gene[i];
 		}
-		children.child[0].output[0] = parent2.output[0];
-		children.child[0].output[1] = parent2.output[1];
-		children.child[1].output[0] = parent1.output[0];
-		children.child[1].output[1] = parent1.output[1];
+
+		if(splitPoint < G_SIZE){
+			children.child[0].output[0] = parent2.output[0];
+			children.child[0].output[1] = parent2.output[1];
+			children.child[1].output[0] = parent1.output[0];
+			children.child[1].output[1] = parent1.output[1];
+		} else {
+			children.child[0].output[0] = parent1.output[0];
+			children.child[0].output[1] = parent2.output[1];
+			children.child[1].output[0] = parent1.output[0];
+			children.child[1].output[1] = parent2.output[1];
+		}
+
+
 		//("Cross occurred\n");
 	} else {
 		children.child[0] = parent1;
@@ -408,19 +404,15 @@ void checkHasLearned(struct individual *individual){
 	int j = 0;
 	int fitness = 0;
 	int outputIndex = 0;
+	int yays = 0;
 	bool match = true;
 
 	for(i = 0; i < TRAINING_ROWS; ++i){
 		outputIndex = 0;
-
-		while((j < G_SIZE*NO_RULES)){
-			if((j!=0)&&((j%G_SIZE) == 0)&&(match == true)){
-				if(individual->output[outputIndex] == data_test[i].output){
-					printf("YAY\n");
-				} else {
-					printf("NAY\n");
-				}
-			} else {
+		j=0;
+		match = true;
+		while((j < G_SIZE*NO_RULES) && (match == true)){
+			if((j!=0)&&((j%G_SIZE) == 0)){
 				outputIndex++;
 			}
 
@@ -431,10 +423,20 @@ void checkHasLearned(struct individual *individual){
 					match = false;
 				}
 			}
+
+
+			if(((j+1)%G_SIZE) == 0){
+				if(match == false){
+					match = true;
+					// getchar();
+				} else if (data_test[i].output == individual->output[outputIndex]){
+					printf("yay\n");
+					yays++;
+				}
+			}
 			++j;
 		}
 	}
-
-	printf("%d%d\n", individual->output[0], individual->output[1]);
+	printf("%d", yays);
 
 }

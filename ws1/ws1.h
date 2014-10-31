@@ -7,10 +7,10 @@
 #include <unistd.h>
 #include <string.h>
 
-#define GENERATIONS 100000
+#define GENERATIONS 100
 #define P_SIZE 100
 #define G_SIZE 6
-#define NO_RULES 2
+#define NO_RULES 10
 #define TRAINING_ROWS 64
 #define TESTING_ROWS 64
 #define T_SIZE 10
