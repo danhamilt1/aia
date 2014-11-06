@@ -7,22 +7,21 @@
 #include <unistd.h>
 #include <string.h>
 
-#define GENERATIONS 1000
-#define P_SIZE 50
-#define G_SIZE 6
-#define NO_RULES 10
+#define GENERATIONS 500
+#define P_SIZE 100
+#define G_SIZE 7
+#define NO_RULES 2
 #define TRAINING_ROWS 64
 #define TESTING_ROWS 64
 #define T_SIZE 2
 #define PROB_ACC 1000
-#define CV_PROB 800 // Crossover probability
+#define CV_PROB 600 // Crossover probability
 #define MT_PROB 100//(1/P_SIZE + 1/G_SIZE*NO_RULES)/2 // Mutation probability
 
 #define DATA_FILE "/home/daniel/Desktop/github/aia.git/ws1/data1.txt"
 
 struct individual{
-  int gene[G_SIZE*NO_RULES];
-  int output[NO_RULES];
+  char gene[((G_SIZE)*NO_RULES) + 1];
   int fitness;
 };
 
@@ -31,8 +30,8 @@ struct childPair{
 };
 
 struct ioData{
-  int input[G_SIZE];
-  int output;
+  char input[G_SIZE];
+  char output;
 };
 
 long calculatePopulationFitness(
