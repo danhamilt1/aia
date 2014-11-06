@@ -42,7 +42,7 @@ int main(void){
 	for(i = 0; i < GENERATIONS; ++i){
 		int j = 0;
 
-		createNewPopulation(population, newPopulation);
+		createNewPopulation(newPopulation, population);
 		selectBestFromPreviousPopulation(newPopulation, population);
 
 
@@ -64,9 +64,15 @@ int main(void){
 
 	printf("fittest individual: ");
 	for(i = 0; i < G_SIZE*NO_RULES; i++){
-		printf("%d", newPopulation[getBestIndex(newPopulation)].gene[i]);
+		if(newPopulation[getBestIndex(newPopulation)].gene[i] != '#'){
+			printf("%d", newPopulation[getBestIndex(newPopulation)].gene[i]);
+		} else {
+			printf("#");
+		}
 	}
 	printf("\n");
+
+	printf("input1: %d, input2: %d", newPopulation[getBestIndex(newPopulation)].output[0],newPopulation[getBestIndex(newPopulation)].output[1]);
 
 	printf("fitness: %d\n", newPopulation[getBestIndex(newPopulation)].fitness);
 
@@ -86,8 +92,6 @@ long calculatePopulationFitness(
 
 	for(i = 0; i < arrSize; ++i){
 		totalFitness = totalFitness + population[i].fitness;
-//		printf("fitness: %d\n", population[i].fitness);
-//		printf("total fitness: %lu", totalFitness);
 	}
 	return totalFitness;
 }
@@ -141,7 +145,7 @@ int calculateFitness(struct individual *individual){
 					match = true;
 				} else {
 					match = false;
-					break;
+					//break;
 				}
 			}
 
@@ -181,7 +185,7 @@ struct childPair crossover(struct individual parent1,
 			children.child[1].gene[i] = parent1.gene[i];
 		}
 
-		if(splitPoint < G_SIZE){
+		if(splitPoint <= G_SIZE){
 			children.child[0].output[0] = parent2.output[0];
 			children.child[0].output[1] = parent2.output[1];
 			children.child[1].output[0] = parent1.output[0];
@@ -428,10 +432,10 @@ void checkHasLearned(struct individual *individual){
 			if(((j+1)%G_SIZE) == 0){
 				if(match == false){
 					match = true;
-					// getchar();
 				} else if (data_test[i].output == individual->output[outputIndex]){
-					printf("yay\n");
+					//printf("yay\n");
 					yays++;
+					break;
 				}
 			}
 			++j;
