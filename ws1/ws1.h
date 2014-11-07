@@ -7,18 +7,18 @@
 #include <unistd.h>
 #include <string.h>
 
-#define GENERATIONS 100
+#define GENERATIONS 500
 #define P_SIZE 50
-#define G_SIZE 7
+#define G_SIZE 12
 #define NO_RULES 10
-#define TRAINING_ROWS 64
+#define TRAINING_ROWS 2048
 #define TESTING_ROWS 64
 #define T_SIZE 2
 #define PROB_ACC 1000
-#define CV_PROB 200 // Crossover probability
-#define MT_PROB 2//(1/P_SIZE + 1/G_SIZE*NO_RULES)/2 // Mutation probability
+#define CV_PROB 700 // Crossover probability
+#define MT_PROB (1/P_SIZE + 1/G_SIZE*NO_RULES)/2 // Mutation probability
 
-#define DATA_FILE "/home/daniel/Desktop/github/aia.git/ws1/data1.txt"
+#define DATA_FILE "data2.txt"
 
 struct individual{
   char gene[((G_SIZE)*NO_RULES) + 1];
@@ -46,7 +46,6 @@ struct individual createIndividual(int gene[G_SIZE]);
 void selectFittest(struct individual *oldPopulation, struct individual *newPopulation);
 int tournamentSelection(struct individual *population, int tournamentSize, int populationSize);
 void mutateIndividual(struct individual *individual);
-void mutateOutput(struct individual *individual);
 void selectBestFromPreviousPopulation(struct individual* newPopulation, struct individual* oldPopulation);
 //int selectBestFromPopulation(struct individual* population);
 int getBestIndex(struct individual* population);
