@@ -260,7 +260,7 @@ int tournamentSelection(struct individual *population, int tournamentSize,
 void mutateIndividual(struct individual *individual) {
 	//int c_length = sizeof(individual->gene) / sizeof(individual->gene[0]);
 	int vals[3] = { '0', '1', '#' };
-	for (int i = 0; i < (G_SIZE * NO_RULES)+1; ++i) {
+	for (int i = 0; i < (G_SIZE * NO_RULES); ++i) {
 		if (probability(0, MT_PROB)) {
 			if ((i+1) % (G_SIZE) != 0) {
 			    //printf("i: %d mod: %d\n", i, (i+1)%G_SIZE);
