@@ -37,8 +37,6 @@ int main(void) {
 
 	memcpy(newPopulation, population, sizeof(struct individual) * P_SIZE);
 
-	printf("Initial population: %lu\n",
-			calculatePopulationFitness(newPopulation, P_SIZE));
 
     //////////////////////// Generation loop
 
@@ -68,9 +66,6 @@ int main(void) {
     ////////////////////////
 
 	fclose(f_csv);
-
-	printf("\nAfter %d generations: %lu\n", (int) GENERATIONS,
-			calculatePopulationFitness(newPopulation, P_SIZE));
 
 	printf("fittest individual: ");
 
@@ -362,7 +357,7 @@ void checkHasLearned(struct individual *individual) {
 	int outputIndex = 0;
 	int yays = 0;
 
-	for (i = 0; i < TRAINING_ROWS; ++i) {
+	for (i = 0; i < TESTING_ROWS; ++i) {
 		int k = 0;
 		for (j = 0; j < (G_SIZE * NO_RULES); ++j) {
 			score = 0;
@@ -390,4 +385,3 @@ void checkHasLearned(struct individual *individual) {
 
 	printf("%d", yays);
 }
-

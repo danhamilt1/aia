@@ -11,8 +11,8 @@
 #define P_SIZE 50
 #define G_SIZE 12
 #define NO_RULES 10
-#define TRAINING_ROWS 2048
-#define TESTING_ROWS 64
+#define TRAINING_ROWS 1024
+#define TESTING_ROWS 2048
 #define T_SIZE 2
 #define PROB_ACC 1000
 #define CV_PROB 700 // Crossover probability
