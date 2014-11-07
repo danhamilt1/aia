@@ -7,16 +7,16 @@
 #include <unistd.h>
 #include <string.h>
 
-#define GENERATIONS 500
-#define P_SIZE 100
+#define GENERATIONS 100
+#define P_SIZE 50
 #define G_SIZE 7
-#define NO_RULES 2
+#define NO_RULES 10
 #define TRAINING_ROWS 64
 #define TESTING_ROWS 64
 #define T_SIZE 2
 #define PROB_ACC 1000
-#define CV_PROB 600 // Crossover probability
-#define MT_PROB 100//(1/P_SIZE + 1/G_SIZE*NO_RULES)/2 // Mutation probability
+#define CV_PROB 200 // Crossover probability
+#define MT_PROB 2//(1/P_SIZE + 1/G_SIZE*NO_RULES)/2 // Mutation probability
 
 #define DATA_FILE "/home/daniel/Desktop/github/aia.git/ws1/data1.txt"
 

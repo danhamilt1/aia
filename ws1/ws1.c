@@ -51,7 +51,7 @@ int main(void) {
 				calculatePopulationFitness(newPopulation, P_SIZE) / P_SIZE);
 
 		if ((i % 100) == 0) {
-			//printf("Completed: %2.2f\%\n", ((float)i/(float)GENERATIONS)*100.0);
+			printf("Completed: %2.2f\%\n", ((float)i/(float)GENERATIONS)*100.0);
 		}
 
 		//printf("Generation: %d :%d\n", i, newPopulation[getBestIndex(newPopulation)].fitness);
@@ -144,13 +144,12 @@ int calculateFitness(struct individual *individual) {
 				++j;
 			}
 
-			if (score == 6) {
+			if (score == G_SIZE-1) {
 				if (individual->gene[j] == data_test[i].output) {
 					fitness++;
 					break;
 				}
 			}
-			j++;
 		}
 	}
 
@@ -384,14 +383,13 @@ void checkHasLearned(struct individual *individual) {
 				++j;
 			}
 
-			if (score == 6) {
+			if (score == G_SIZE-1) {
 				if (data_test[i].output == individual->gene[j - 1]) {
-					printf("%s\n", data_test[i].input);
+					printf("input: %s, output: %c\n", data_test[i].input, data_test[i].output);
 					yays++;
 					break;
 				}
 			}
-			++j;
 		}
 
 	}
