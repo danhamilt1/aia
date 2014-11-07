@@ -8,20 +8,21 @@
 #include <string.h>
 
 #define GENERATIONS 500
-#define P_SIZE 50
-#define G_SIZE 12
+#define POPULATION_SIZE 50
+#define RULE_LENGTH 12
 #define NO_RULES 10
+#define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
 #define TRAINING_ROWS 1024
 #define TESTING_ROWS 2048
 #define T_SIZE 2
 #define PROB_ACC 1000
 #define CV_PROB 700 // Crossover probability
-#define MT_PROB (1/P_SIZE + 1/G_SIZE*NO_RULES)/2 // Mutation probability
+#define MT_PROB (1/POPULATION_SIZE + 1/INDIVIDUAL_LENGTH)/2 // Mutation probability
 
 #define DATA_FILE "data2.txt"
 
 struct individual{
-  char gene[((G_SIZE)*NO_RULES) + 1];
+  char gene[INDIVIDUAL_LENGTH + 1];
   int fitness;
 };
 
@@ -30,7 +31,7 @@ struct childPair{
 };
 
 struct ioData{
-  char input[G_SIZE];
+  char input[RULE_LENGTH];
   char output;
 };
 
@@ -42,7 +43,7 @@ int calculateFitness(struct individual *individual);
 struct childPair crossover(struct individual parent1,
             struct individual parent2);
 void createNewPopulation(struct individual *oldPopulation, struct individual *newPopulation);
-struct individual createIndividual(int gene[G_SIZE]);
+struct individual createIndividual(int gene[RULE_LENGTH]);
 void selectFittest(struct individual *oldPopulation, struct individual *newPopulation);
 int tournamentSelection(struct individual *population, int tournamentSize, int populationSize);
 void mutateIndividual(struct individual *individual);
@@ -53,4 +54,4 @@ int getWorstIndex(struct individual* population);
 void readInData();
 void checkHasLearned(struct individual *individual);
 
-struct ioData *data_test;
+struct ioData *trainingData;
