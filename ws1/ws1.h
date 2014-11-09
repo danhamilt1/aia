@@ -9,16 +9,17 @@
 #include <curses.h>
 
 #define GENERATIONS 100
-#define POPULATION_SIZE 50
+#define POPULATION_SIZE 5000
 #define RULE_LENGTH 12
 #define NO_RULES 20
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
-#define TRAINING_ROWS 1200
+#define TRAINING_ROWS (TESTING_ROWS/100)*TEST_PERCENTAGE
 #define TESTING_ROWS 2048
-#define T_SIZE 2
+#define TEST_PERCENTAGE 100
+#define T_SIZE 100
 #define PROB_ACC 1000
-#define CV_PROB 700 // Crossover probability
-#define MT_PROB (1/POPULATION_SIZE + 1/INDIVIDUAL_LENGTH)/2 // Mutation probability
+#define CV_PROB 0 // Crossover probability
+#define MT_PROB 20//(1/POPULATION_SIZE + 1/INDIVIDUAL_LENGTH)/2 // Mutation probability
 
 #define DATA_FILE "data2.txt"
 
@@ -44,7 +45,6 @@ int calculateFitness(struct individual *individual);
 struct childPair crossover(struct individual parent1,
             struct individual parent2);
 void createNewPopulation(struct individual *oldPopulation, struct individual *newPopulation);
-struct individual createIndividual(int gene[RULE_LENGTH]);
 void selectFittest(struct individual *oldPopulation, struct individual *newPopulation);
 int tournamentSelection(struct individual *population, int tournamentSize, int populationSize);
 void mutateIndividual(struct individual *individual);

@@ -33,7 +33,7 @@ int main(void) {
 		char vals[3] = { '0', '1', '#' };
 		for (j = 0; j < INDIVIDUAL_LENGTH+1; ++j) {
 			if ((j + 1) % RULE_LENGTH != 0) {
-				population[i].gene[j] = vals[rand() % 3];
+				population[i].gene[j] = vals[rand() % 2];
 			} else {
 				population[i].gene[j] = vals[rand() % 2];
 			}
@@ -80,7 +80,7 @@ int main(void) {
 			x++;
 
 		}
-
+		move(100, 100);
 		mvaddstr(++y, x, "Generation: ");
 		printw("%d",i);
 		mvaddstr(++y, x, "Fitness: ");
@@ -134,7 +134,7 @@ long calculatePopulationFitness(struct individual *population, int arrSize) {
 
 bool probability(float minValue, float maxValue) {
 	bool retVal = false;
-	int randomNumber = rand() % (int) PROB_ACC;
+	int randomNumber = rand() % PROB_ACC;
 	// Check if value lands between bounds
 	if ((randomNumber >= minValue) && (randomNumber <= maxValue)) {
 		retVal = true;
@@ -174,23 +174,28 @@ int calculateFitness(struct individual *individual) {
 			for (int k = 0; k < RULE_LENGTH; k++) {
 				if ((j + 1) % RULE_LENGTH != 0) {
 					if (individual->gene[j] != '#') {
-						if (individual->gene[j] == trainingData[i].input[j]) {
+						if (individual->gene[j] == allData[i].input[j]) {
 							++score;
 						}
-					} else {
+					}
+					else{
 						++score;
 					}
+
 				}
 				++j;
 			}
 
 			if (score == RULE_LENGTH-1) {
-				if (individual->gene[j] == trainingData[i].output) {
+				if (individual->gene[j] == allData[i].output) {
 					fitness++;
+					break;
+				} else {
 					break;
 				}
 			}
 		}
+
 	}
 
 	return fitness;
@@ -199,7 +204,7 @@ int calculateFitness(struct individual *individual) {
 
 struct childPair crossover(struct individual parent1, struct individual parent2) {
 	struct childPair children;
-	int splitPoint = rand() % INDIVIDUAL_LENGTH+1;
+	int splitPoint = rand() % INDIVIDUAL_LENGTH;
 	int i = 0;
 
 	if (probability(0, CV_PROB)) {
@@ -217,8 +222,8 @@ struct childPair crossover(struct individual parent1, struct individual parent2)
 		children.child[0] = parent1;
 		children.child[1] = parent2;
 	}
-	children.child[0].gene[RULE_LENGTH*NO_RULES] = '\0';
-	children.child[1].gene[RULE_LENGTH*NO_RULES] = '\0';
+	children.child[0].gene[INDIVIDUAL_LENGTH] = '\0';
+	children.child[1].gene[INDIVIDUAL_LENGTH] = '\0';
 	//children.child[0].fitness = calculateFitness(children.child[0]);
 	//children.child[1].fitness = calculateFitness(children.child[1]);
 
@@ -231,7 +236,9 @@ void createNewPopulation(struct individual *oldPopulation,
 	struct childPair temp;
 	int i = 0;
 	for (i = 0; i < POPULATION_SIZE; ++i) {
-
+		refresh();
+		mvaddstr(1, 50, "Working on new population individual: ");
+		printw("%d   ",i);
 		//Carry out 2 tournaments to select 2 parents for mating
 		int p1 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
 		int p2 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
@@ -293,31 +300,24 @@ int tournamentSelection(struct individual *population, int tournamentSize,
 void mutateIndividual(struct individual *individual) {
 	int vals[3] = { '0', '1', '#' };
 	for (int i = 0; i < INDIVIDUAL_LENGTH; ++i) {
+		int mutateTo = 0;
 		if (probability(0, MT_PROB)) {
 			if ((i+1) % (RULE_LENGTH) != 0) {
-			    //printf("i: %d mod: %d\n", i, (i+1)%RULE_LENGTH);
-				individual->gene[i] = vals[rand() % 3];
+				mutateTo = rand()%3;
+				while(vals[mutateTo] == individual->gene[i]){
+					mutateTo = rand()%3;
+				}
+				individual->gene[i] = vals[mutateTo];
 			} else {
-				individual->gene[i] = vals[rand() % 2];
+				mutateTo = rand()%2;
+				while(vals[mutateTo] == individual->gene[i]){
+					mutateTo = rand()%2;
+				}
+				individual->gene[i] = vals[mutateTo];
 			}
 		}
 	}
 
-}
-
-struct individual createIndividual(int gene[RULE_LENGTH * NO_RULES]) {
-	struct individual newIndividual;
-	int i = 0;
-
-	for (i = 0; i < INDIVIDUAL_LENGTH+1; ++i) {
-		printf("%d", gene[i]);
-	}
-	printf("\n");
-
-	memcpy(newIndividual.gene, gene, sizeof(*gene) * RULE_LENGTH * NO_RULES);
-	newIndividual.fitness = calculateFitness(&newIndividual);
-	printf("\n");
-	return newIndividual;
 }
 
 void selectBestFromPreviousPopulation(struct individual* newPopulation,
@@ -341,6 +341,13 @@ int getBestIndex(struct individual* population) {
 		if ((best == NULL)
 				|| (population[i].fitness > population[best].fitness)) {
 			best = i;
+		} else if (population[i].fitness == population[best].fitness) {
+			int random = rand()%2;
+			if(random == 0){
+				best = i;
+			} else {
+			  best = best;
+			}
 		}
 	}
 
