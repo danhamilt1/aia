@@ -34,7 +34,7 @@ int main(void) {
 		char vals[3] = { '0', '1', '#' };
 		for (j = 0; j < INDIVIDUAL_LENGTH+1; ++j) {
 			if ((j + 1) % RULE_LENGTH != 0) {
-				population[i].gene[j] = vals[rand() % 2];
+				population[i].gene[j] = vals[rand() % 3];
 			} else {
 				population[i].gene[j] = vals[rand() % 2];
 			}
@@ -89,6 +89,8 @@ int main(void) {
 		//printf("Generation: %d Fitness: %d\n", i, newPopulation[getBestIndex(newPopulation)].fitness);
 		//printf("Worst: %s, Generation: %d Fitness: %d\n", newPopulation[getWorstIndex(newPopulation)].gene, i, newPopulation[getWorstIndex(newPopulation)].fitness);
 		memcpy(population, newPopulation, sizeof(struct individual) * POPULATION_SIZE);
+		mvaddstr(++y, x, "Test: ");
+		printw("%d", checkHasLearned(&newPopulation[getBestIndex(newPopulation)]));
 
     if(newPopulation[getBestIndex(newPopulation)].fitness == TRAINING_ROWS){
 			//break;
@@ -199,7 +201,7 @@ int calculateFitness(struct individual *individual) {
 					fitness++;
 					break;
 				} else {
-					break;
+					//break;
 				}
 			}
 		}
@@ -245,7 +247,7 @@ void createNewPopulation(struct individual *oldPopulation,
 	int i = 0;
 	for (i = 0; i < POPULATION_SIZE; ++i) {
 		refresh();
-		mvaddstr(1, 50, "Working on new population individual: ");
+		mvaddstr(1, 30, "Working on new population individual: ");
 		printw("%d   ",i);
 		//Carry out 2 tournaments to select 2 parents for mating
 		int p1 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
@@ -468,7 +470,7 @@ int checkHasLearned(struct individual *individual) {
 					yays++;
 					break;
 				} else {
-					break;
+					//break;
 				}
 			}
 		}
