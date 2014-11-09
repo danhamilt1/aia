@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c99
+CFLAGS = -std=c99 -lncurses
 DEPS = ws1.h
 OBJ = ws1.o
 
@@ -7,7 +7,7 @@ OBJ = ws1.o
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 ws1: ws1.o
-	$(CC) -o ws1 ws1.o -std=c99
+	$(CC) -o ws1 ws1.o -std=c99 -lncurses
 
 clean:
 	rm ./*.o

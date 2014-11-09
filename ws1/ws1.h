@@ -6,13 +6,14 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
+#include <curses.h>
 
-#define GENERATIONS 500
+#define GENERATIONS 100
 #define POPULATION_SIZE 50
 #define RULE_LENGTH 12
-#define NO_RULES 10
+#define NO_RULES 20
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
-#define TRAINING_ROWS 1024
+#define TRAINING_ROWS 1200
 #define TESTING_ROWS 2048
 #define T_SIZE 2
 #define PROB_ACC 1000
@@ -52,6 +53,10 @@ void selectBestFromPreviousPopulation(struct individual* newPopulation, struct i
 int getBestIndex(struct individual* population);
 int getWorstIndex(struct individual* population);
 void readInData();
-void checkHasLearned(struct individual *individual);
+void selectTrainingData();
+int checkHasLearned(struct individual *individual);
 
+WINDOW * mainwin;
+
+struct ioData *allData;
 struct ioData *trainingData;
