@@ -2,6 +2,7 @@
 
 int main(void) {
 	FILE *f_csv;
+	FILE *out;
 
 	// TIDY THIS UP
 	int i = 0;
@@ -109,6 +110,13 @@ int main(void) {
 	mvaddstr(++y, x, "Test: ");
   printw("%d", checkHasLearned(&newPopulation[getBestIndex(newPopulation)]));
 
+	out = fopen(OUTPUT_FILE, "w");
+
+	fprintf(out, "Test matches: %d", checkHasLearned(&newPopulation[getBestIndex(newPopulation)]));
+
+	fclose(out);
+	fclose(f_csv);
+
 	free(trainingData);
 	free(allData);
 	free(population);
@@ -174,7 +182,7 @@ int calculateFitness(struct individual *individual) {
 			for (int k = 0; k < RULE_LENGTH; k++) {
 				if ((j + 1) % RULE_LENGTH != 0) {
 					if (individual->gene[j] != '#') {
-						if (individual->gene[j] == allData[i].input[j]) {
+						if (individual->gene[j] == trainingData[i].input[j]) {
 							++score;
 						}
 					}
@@ -187,7 +195,7 @@ int calculateFitness(struct individual *individual) {
 			}
 
 			if (score == RULE_LENGTH-1) {
-				if (individual->gene[j] == allData[i].output) {
+				if (individual->gene[j] == trainingData[i].output) {
 					fitness++;
 					break;
 				} else {

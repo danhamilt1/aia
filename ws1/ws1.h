@@ -8,20 +8,20 @@
 #include <string.h>
 #include <curses.h>
 
-#define GENERATIONS 100
-#define POPULATION_SIZE 5000
-#define RULE_LENGTH 12
-#define NO_RULES 20
+#define GENERATIONS 500
+#define POPULATION_SIZE 1000
+#define RULE_LENGTH 7
+#define NO_RULES 10
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
-#define TRAINING_ROWS (TESTING_ROWS/100)*TEST_PERCENTAGE
-#define TESTING_ROWS 2048
-#define TEST_PERCENTAGE 100
-#define T_SIZE 100
-#define PROB_ACC 1000
+#define TRAINING_ROWS 55
+#define TESTING_ROWS 64
+#define T_SIZE 2
+#define PROB_ACC 10000
 #define CV_PROB 0 // Crossover probability
-#define MT_PROB 20//(1/POPULATION_SIZE + 1/INDIVIDUAL_LENGTH)/2 // Mutation probability
+#define MT_PROB 1//(1/POPULATION_SIZE + 1/INDIVIDUAL_LENGTH)/2 // Mutation probability
 
-#define DATA_FILE "data2.txt"
+#define DATA_FILE "data1.txt"
+#define OUTPUT_FILE "out.txt"
 
 struct individual{
   char gene[INDIVIDUAL_LENGTH + 1];
