@@ -32,7 +32,7 @@ int main(void) {
 	//Set-up initial population
 	for (i = 0; i < POPULATION_SIZE; ++i) {
 		char vals[3] = { '0', '1', '#' };
-		for (j = 0; j < INDIVIDUAL_LENGTH+1; ++j) {
+		for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
 			if ((j + 1) % RULE_LENGTH != 0) {
 				population[i].gene[j] = vals[rand() % 3];
 			} else {
@@ -223,7 +223,7 @@ struct childPair crossover(struct individual parent1, struct individual parent2)
 			children.child[1].gene[i] = parent2.gene[i];
 		}
 
-		for (i = splitPoint; i < INDIVIDUAL_LENGTH; ++i) {
+		for (i = splitPoint; i <= INDIVIDUAL_LENGTH; ++i) {
 			children.child[0].gene[i] = parent2.gene[i];
 			children.child[1].gene[i] = parent1.gene[i];
 		}
@@ -470,7 +470,7 @@ int checkHasLearned(struct individual *individual) {
 					yays++;
 					break;
 				} else {
-					//break;
+					break;
 				}
 			}
 		}
