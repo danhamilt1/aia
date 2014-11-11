@@ -96,6 +96,10 @@ int main(void) {
 			//break;
 		}
 
+		if(tSize > 100){
+			//tSize = tSize/2;
+		}
+
 	}
 
   ////////////////////////
@@ -198,7 +202,7 @@ int calculateFitness(struct individual *individual) {
 					fitness++;
 					break;
 				} else {
-					i = TRAINING_ROWS;
+					//i = TRAINING_ROWS;
 					break;
 				}
 			}
@@ -243,6 +247,7 @@ void createNewPopulation(struct individual *oldPopulation,
 		struct individual *newPopulation) {
 	struct childPair temp;
 	int i = 0;
+
 	for (i = 0; i < POPULATION_SIZE; ++i) {
 		refresh();
 		mvaddstr(1, 30, "Working on new population individual: ");
