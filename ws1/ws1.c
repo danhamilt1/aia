@@ -40,7 +40,7 @@ int main(void) {
 			}
 
 		}
-		population[i].gene[j + 1] = '\0';
+		population[i].gene[INDIVIDUAL_LENGTH] = '\0';
 		population[i].fitness = calculateFitness(&population[i]);
 	}
 
@@ -181,18 +181,15 @@ int calculateFitness(struct individual *individual) {
 		int k = 0;
 		for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
 			score = 0;
-			for (int k = 0; k < RULE_LENGTH; k++) {
-				if ((j + 1) % RULE_LENGTH != 0) {
+			for (int k = 0; k < RULE_LENGTH-1; k++) {
 					if (individual->gene[j] != '#') {
-						if (individual->gene[j] == trainingData[i].input[j]) {
+						if (individual->gene[j] == trainingData[i].input[k]) {
 							++score;
 						}
 					}
 					else{
 						++score;
 					}
-
-				}
 				++j;
 			}
 
@@ -201,7 +198,8 @@ int calculateFitness(struct individual *individual) {
 					fitness++;
 					break;
 				} else {
-					//break;
+					i = TRAINING_ROWS;
+					break;
 				}
 			}
 		}
@@ -223,7 +221,7 @@ struct childPair crossover(struct individual parent1, struct individual parent2)
 			children.child[1].gene[i] = parent2.gene[i];
 		}
 
-		for (i = splitPoint; i <= INDIVIDUAL_LENGTH; ++i) {
+		for (i = splitPoint; i < INDIVIDUAL_LENGTH; ++i) {
 			children.child[0].gene[i] = parent2.gene[i];
 			children.child[1].gene[i] = parent1.gene[i];
 		}
@@ -451,16 +449,16 @@ int checkHasLearned(struct individual *individual) {
 		int k = 0;
 		for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
 			score = 0;
-			for (int k = 0; k < RULE_LENGTH; k++) {
-				if ((j + 1) % RULE_LENGTH != 0) {
+			for (int k = 0; k < RULE_LENGTH-1; k++) {
+
 					if (individual->gene[j] != '#') {
-						if (individual->gene[j] == allData[i].input[j]) {
+						if (individual->gene[j] == allData[i].input[k]) {
 							++score;
 						}
 					} else {
 						++score;
 					}
-				}
+
 				++j;
 			}
 
@@ -470,6 +468,7 @@ int checkHasLearned(struct individual *individual) {
 					yays++;
 					break;
 				} else {
+					//i = TESTING_ROWS;
 					break;
 				}
 			}
