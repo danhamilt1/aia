@@ -63,7 +63,7 @@ int main(void) {
 		selectBestFromPreviousPopulation(newPopulation, population);
 		fprintf(f_csv, "\n %d, %d",
 				newPopulation[getBestIndex(newPopulation)].fitness,
-				calculatePopulationFitness(newPopulation,
+				(int)calculatePopulationFitness(newPopulation,
 						POPULATION_SIZE) / POPULATION_SIZE);
 
 		if ((i % 100) == 0) {
@@ -340,14 +340,14 @@ void selectFittest(struct individual *oldPopulation,
 
 int tournamentSelection(struct individual *population, int tournamentSize,
 		int populationSize) {
-	int best = NULL;
+	int best = -1;
 	int challengerIndex = 0;
 	int i = 0;
 
 	// Select tournament pool for this iteration
 	for (i = 0; i < tournamentSize; ++i) {
 		challengerIndex = rand() % populationSize;
-		if ((best == NULL)
+		if ((best == -1)
 				|| (population[challengerIndex].fitness
 						>= population[best].fitness)) {
 			best = challengerIndex;
@@ -395,11 +395,11 @@ void selectBestFromPreviousPopulation(struct individual* newPopulation,
 }
 
 int getBestIndex(struct individual* population) {
-	int best = NULL;
+	int best = -1;
 	int i = 0;
 
 	for (i = 0; i < POPULATION_SIZE; ++i) {
-		if ((best == NULL)
+		if ((best == -1)
 				|| (population[i].fitness > population[best].fitness)) {
 			best = i;
 		} else if (population[i].fitness == population[best].fitness) {
@@ -416,11 +416,11 @@ int getBestIndex(struct individual* population) {
 }
 
 int getWorstIndex(struct individual* population) {
-	int worst = NULL;
+	int worst = -1;
 	int i = 0;
 
 	for (i = 0; i < POPULATION_SIZE; ++i) {
-		if ((worst == NULL)
+		if ((worst == -1)
 				|| (population[i].fitness <= population[worst].fitness)) {
 			worst = i;
 		}
