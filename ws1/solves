@@ -1,0 +1,88 @@
+-------------------
+
+ 0000####### |0               Working on new population individual: 498
+ 101#####0## |0
+ 001#0###### |0
+ 010##0##### |0
+ 011###0#### |0
+ 100####0### |0
+ 111#######0 |0
+ 110######0# |0
+ ########### |1
+
+ Generation: 172
+ Fitness: 1800
+ Test: 2048
+ Found Fittest Individual!
+
+ 0000#######0101#####0##0001#0######0010##0#####0011###0####0100####0###0111####
+###00110######0#0###########1
+ Fitness: 1800
+ Test: 2048
+ Press any key to exit
+
+
+#define GENERATIONS 10000
+#define POPULATION_SIZE 500
+#define RULE_LENGTH 12
+#define NO_RULES 9
+#define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
+#define TRAINING_ROWS 1800
+#define TESTING_ROWS 2048
+#define T_SIZE 10
+#define PROB_ACC 10000
+#define CV_PROB 6000 // Crossover probability
+#define MT_PROB 100//(1/POPULATION_SIZE + 1/INDIVIDUAL_LENGTH)/2 // Mutation probability
+
+9 RULES
+
+-------------------
+
+ 0001####### |1               Working on new population individual: 498
+ 111#######1 |1
+ 011###1#### |1
+ 100####1### |1
+ 110######1# |1
+ 101#####1## |1
+ 001#1###### |1
+ 010##1##### |1
+ ########### |0
+
+ Generation: 159
+ Fitness: 1800
+ Test: 2048
+ Found Fittest Individual!
+
+ 0001#######1111#######11011###1####1100####1###1110######1#1101#####1##1001#1##
+####1010##1#####1###########0
+ Fitness: 1800
+ Test: 2048
+ Press any key to exit
+
+ SAME
+
+ -------------------
+
+  101#####1## |1               Working on new population individual: 498
+ 110######1# |1
+ #001###1### |1
+ 0001###0### |1
+ 1000###1### |1
+ 010##1##### |1
+ 111#######1 |1
+ 011###1#### |1
+ 001#1###### |1
+ ########### |0
+
+ Generation: 166
+ Fitness: 1800
+ Test: 2048
+ Found Fittest Individual!
+
+ 101#####1##1110######1#1#001###1###10001###0###11000###1###1010##1#####1111####
+###11011###1####1001#1######1###########0
+ Fitness: 1800
+ Test: 2048
+ Press any key to exit
+
+10 RULES

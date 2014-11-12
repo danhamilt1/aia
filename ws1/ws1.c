@@ -93,7 +93,7 @@ int main(void) {
 		printw("%d", checkHasLearned(&newPopulation[getBestIndex(newPopulation)]));
 
     if(newPopulation[getBestIndex(newPopulation)].fitness == TRAINING_ROWS){
-			//break;
+			break;
 		}
 
 		if(tSize > 100){
