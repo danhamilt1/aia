@@ -10,7 +10,7 @@
 #include <pthread.h>
 
 #define GENERATIONS 10000
-#define POPULATION_SIZE 500
+#define POPULATION_SIZE 50000
 #define RULE_LENGTH 12
 #define NO_RULES 10
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
@@ -19,12 +19,12 @@
 #define T_SIZE 10
 #define PROB_ACC 10000
 #define CV_PROB 6000 // Crossover probability
-#define MT_PROB 900//(1/POPULATION_SIZE + 1/INDIVIDUAL_LENGTH)/2 // Mutation probability
+#define MT_PROB 10//(1/POPULATION_SIZE + 1/INDIVIDUAL_LENGTH)/2 // Mutation probability
 
 #define DATA_FILE "data2.txt"
 #define OUTPUT_FILE "out.txt"
 
-#define NUM_THREADS 20
+#define NUM_THREADS 100
 
 struct individual{
   char gene[INDIVIDUAL_LENGTH + 1];
