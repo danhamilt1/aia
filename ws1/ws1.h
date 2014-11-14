@@ -8,24 +8,29 @@
 #include <string.h>
 #include <curses.h>
 
-#define GENERATIONS 10000
-#define POPULATION_SIZE 500
+#define GENERATIONS 100000
+#define POPULATION_SIZE 500000
 #define RULE_LENGTH 12
-#define NO_RULES 10
+#define NO_RULES 9
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
-#define TRAINING_ROWS 1800
+#define TRAINING_ROWS 1844
 #define TESTING_ROWS 2048
-#define T_SIZE 10
-#define PROB_ACC 10000
-#define CV_PROB 6000 // Crossover probability
-#define MT_PROB 100//(1/POPULATION_SIZE + 1/INDIVIDUAL_LENGTH)/2 // Mutation probability
+#define T_SIZE 100
+#define PROB_ACC 1000
+#define CV_PROB 700 // Crossover probability
+#define MT_PROB 1//(1/POPULATION_SIZE + 1/INDIVIDUAL_LENGTH)/2 // Mutation probability
 
 #define DATA_FILE "data2.txt"
 #define OUTPUT_FILE "out.txt"
 
 struct individual{
-  char gene[INDIVIDUAL_LENGTH + 1];
+  struct chromosome gene[INDIVIDUAL_LENGTH + 1];
   int fitness;
+};
+
+struct chromosome{
+    float lowerBound;
+    float upperBound;    
 };
 
 struct childPair{
@@ -33,7 +38,7 @@ struct childPair{
 };
 
 struct ioData{
-  char input[RULE_LENGTH];
+  float input[RULE_LENGTH];
   char output;
 };
 
@@ -55,6 +60,7 @@ int getWorstIndex(struct individual* population);
 void readInData();
 void selectTrainingData();
 int checkHasLearned(struct individual *individual);
+double randfrom(double min, double max);
 
 WINDOW * mainwin;
 
