@@ -10,7 +10,7 @@
 #include <pthread.h>
 
 #define GENERATIONS 10000
-#define POPULATION_SIZE 50000
+#define POPULATION_SIZE 5000
 #define RULE_LENGTH 12
 #define NO_RULES 10
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
@@ -24,7 +24,7 @@
 #define DATA_FILE "data2.txt"
 #define OUTPUT_FILE "out.txt"
 
-#define NUM_THREADS 10
+#define NUM_THREADS 4
 
 struct individual{
   char gene[INDIVIDUAL_LENGTH + 1];

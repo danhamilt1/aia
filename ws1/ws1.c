@@ -176,15 +176,15 @@ int getSeed() {
 }
 
 int calculateFitness(struct individual *individual) {
-    int fitness = 0;
-    int rc;
-	struct threadData data[NUM_THREADS];
-	pthread_t threads[NUM_THREADS];
-	pthread_attr_t attr;
-	
+  	int fitness = 0;
+		int rc;
+		struct threadData data[NUM_THREADS];
+		pthread_t threads[NUM_THREADS];
+	  pthread_attr_t attr;
+
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-	
+
 	for( int i = 0; i < NUM_THREADS; ++i){
 	    rc = pthread_create(&threads[i], &attr, runThread, (void *)&data[i]);
 	    if (rc) {
@@ -192,9 +192,9 @@ int calculateFitness(struct individual *individual) {
          exit(-1);
          }
 	}
-	
+
 	pthread_attr_destroy(&attr);
-	
+
 	for( int i = 0; i < NUM_THREADS; ++i){
 	    rc = pthread_join(threads[i], NULL);
 	    if (rc) {
@@ -202,13 +202,13 @@ int calculateFitness(struct individual *individual) {
          exit(-1);
          }
 	}
-	
+
 	for( int i = 0; i < NUM_THREADS; ++i){
-	
+
 	    fitness += data[i].fitness;
-	    
+
 	}
-	
+		printf("%d", fitness);
     return fitness;
 
 }
@@ -219,12 +219,14 @@ void *runThread(void *threadArgs){
 	int j = 0;
 	int fitness = 0;
 	int score = 0;
-	
+
     struct threadData *data;
-    
+    struct individual *individual;
+
     data = (struct threadData *)threadArgs;
+		individual = data->individual;
     data->fitness = 0;
-/*   
+
     for (i = 0; i < TRAINING_ROWS; ++i) {
 		int k = 0;
 		for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
@@ -253,12 +255,7 @@ void *runThread(void *threadArgs){
 		}
 
 	}
-*/
-    for(int i = 0; i < 100; ++i){
-        data->fitness++;
-    }
-    
-    pthread_exit((void *)threadArgs);
+  pthread_exit((void *)threadArgs);
 }
 
 struct childPair crossover(struct individual parent1, struct individual parent2) {
