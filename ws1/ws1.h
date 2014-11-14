@@ -7,9 +7,10 @@
 #include <unistd.h>
 #include <string.h>
 #include <curses.h>
+#include <pthread.h>
 
 #define GENERATIONS 10000
-#define POPULATION_SIZE 500
+#define POPULATION_SIZE 50000
 #define RULE_LENGTH 12
 #define NO_RULES 10
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
@@ -23,6 +24,8 @@
 #define DATA_FILE "data2.txt"
 #define OUTPUT_FILE "out.txt"
 
+#define NUM_THREADS 10
+
 struct individual{
   char gene[INDIVIDUAL_LENGTH + 1];
   int fitness;
@@ -35,6 +38,11 @@ struct childPair{
 struct ioData{
   char input[RULE_LENGTH];
   char output;
+};
+
+struct threadData{
+    struct individual* individual;
+    int fitness;
 };
 
 long calculatePopulationFitness(
@@ -55,10 +63,12 @@ int getWorstIndex(struct individual* population);
 void readInData();
 void selectTrainingData();
 int checkHasLearned(struct individual *individual);
+void *runThread(void *threadArgs);
 
 WINDOW * mainwin;
 
 struct ioData *allData;
 struct ioData *trainingData;
+
 
 int tSize = T_SIZE;

@@ -80,13 +80,13 @@ int main(void) {
 			}
 			x++;
 
-		}
+    	}
 		move(100, 100);
 		mvaddstr(++y, x, "Generation: ");
 		printw("%d",i);
 		mvaddstr(++y, x, "Fitness: ");
 		printw("%d", newPopulation[getBestIndex(newPopulation)].fitness);
-		//printf("Generation: %d Fitness: %d\n", i, newPopulation[getBestIndex(newPopulation)].fitness);
+    	//printf("Generation: %d Fitness: %d\n", i, newPopulation[getBestIndex(newPopulation)].fitness);
 		//printf("Worst: %s, Generation: %d Fitness: %d\n", newPopulation[getWorstIndex(newPopulation)].gene, i, newPopulation[getWorstIndex(newPopulation)].fitness);
 		memcpy(population, newPopulation, sizeof(struct individual) * POPULATION_SIZE);
 		mvaddstr(++y, x, "Test: ");
@@ -176,12 +176,56 @@ int getSeed() {
 }
 
 int calculateFitness(struct individual *individual) {
+    int fitness = 0;
+    int rc;
+	struct threadData data[NUM_THREADS];
+	pthread_t threads[NUM_THREADS];
+	pthread_attr_t attr;
+	
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+	
+	for( int i = 0; i < NUM_THREADS; ++i){
+	    rc = pthread_create(&threads[i], &attr, runThread, (void *)&data[i]);
+	    if (rc) {
+         printf("ERROR; return code from pthread_create() is %d\n", rc);
+         exit(-1);
+         }
+	}
+	
+	pthread_attr_destroy(&attr);
+	
+	for( int i = 0; i < NUM_THREADS; ++i){
+	    rc = pthread_join(threads[i], NULL);
+	    if (rc) {
+         printf("ERROR; return code from pthread_create() is %d\n", rc);
+         exit(-1);
+         }
+	}
+	
+	for( int i = 0; i < NUM_THREADS; ++i){
+	
+	    fitness += data[i].fitness;
+	    
+	}
+	
+    return fitness;
+
+}
+
+
+void *runThread(void *threadArgs){
 	int i = 0;
 	int j = 0;
 	int fitness = 0;
 	int score = 0;
-
-	for (i = 0; i < TRAINING_ROWS; ++i) {
+	
+    struct threadData *data;
+    
+    data = (struct threadData *)threadArgs;
+    data->fitness = 0;
+/*   
+    for (i = 0; i < TRAINING_ROWS; ++i) {
 		int k = 0;
 		for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
 			score = 0;
@@ -199,7 +243,7 @@ int calculateFitness(struct individual *individual) {
 
 			if (score == RULE_LENGTH-1) {
 				if (individual->gene[j] == trainingData[i].output) {
-					fitness++;
+					data->fitness++;
 					break;
 				} else {
 					//i = TRAINING_ROWS;
@@ -209,9 +253,12 @@ int calculateFitness(struct individual *individual) {
 		}
 
 	}
-
-	return fitness;
-
+*/
+    for(int i = 0; i < 100; ++i){
+        data->fitness++;
+    }
+    
+    pthread_exit((void *)threadArgs);
 }
 
 struct childPair crossover(struct individual parent1, struct individual parent2) {
@@ -249,9 +296,9 @@ void createNewPopulation(struct individual *oldPopulation,
 	int i = 0;
 
 	for (i = 0; i < POPULATION_SIZE; ++i) {
-		refresh();
-		mvaddstr(1, 30, "Working on new population individual: ");
-		printw("%d   ",i);
+//		refresh();
+//		mvaddstr(1, 30, "Working on new population individual: ");
+//		printw("%d   ",i);
 		//Carry out 2 tournaments to select 2 parents for mating
 		int p1 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
 		int p2 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
@@ -417,7 +464,6 @@ void selectTrainingData(){
 
 	for(i = 0; i < TRAINING_ROWS; i++){
 		selected[i] = -1;
-		printf("%d\n",i);
 	}
 
 	for(i = 0; i < TRAINING_ROWS; i++){
@@ -426,18 +472,15 @@ void selectTrainingData(){
 			randomIndex = rand()%TESTING_ROWS;
 			hasNumber = false;
 			for(j = 0; j < TRAINING_ROWS; j++){
-				//printf("%d\n", randomIndex);
 					if(selected[j] == randomIndex){
 						hasNumber = true;
 						break;
 					}
-					//printf("%d\n",j);
 			}
 
 		}while(hasNumber == true);
 
 		selected[i] = randomIndex;
-		//printf("%d\n", i);
 	  trainingData[i] = allData[selected[i]];
 	}
 
