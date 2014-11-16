@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c99 -l ncurses -Ofast
+CFLAGS = -std=c99 -l ncurses -Ofast -pthread
 DEPS = ws1.h
 OBJ = ws1.o
 
@@ -7,7 +7,7 @@ OBJ = ws1.o
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 ws1: ws1.o
-	$(CC) -o ws1 ws1.o -std=c99 -l ncurses -Ofast
+	$(CC) -o ws1 ws1.o -std=c99 -l ncurses -Ofast -pthread
 
 clean:
 	rm ./*.o

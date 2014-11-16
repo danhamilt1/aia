@@ -31,16 +31,18 @@ int main(void) {
 	refresh();
 	//Set-up initial population
 	for (i = 0; i < POPULATION_SIZE; ++i) {
-		char vals[3] = { '0', '1', '#' };
+		char vals[3] = { '0', '1' };
 		for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
 			if ((j + 1) % RULE_LENGTH != 0) {
-				population[i].gene[j] = vals[rand() % 3];
-			} else {
-				population[i].gene[j] = vals[rand() % 2];
-			}
+				population[i].gene[j].lowerBound = fabs(randfrom(0,1));
+				population[i].gene[j].upperBound = fabs(randfrom(population[i].gene[j].lowerBound,1));
 
+			} else {
+				population[i].gene[j].output = vals[rand() % 2];
+
+			}
+			//printf("%d, %lf, %lf, %d\n",i, population[i].gene[j].lowerBound, population[i].gene[j].upperBound, population[i].gene[j].output);
 		}
-		population[i].gene[INDIVIDUAL_LENGTH] = '\0';
 		population[i].fitness = calculateFitness(&population[i]);
 	}
 
@@ -52,53 +54,51 @@ int main(void) {
 	// NCurses coords
 	int x = 1;
 	int y = 1;
-
+	int bestInPopulation = 0;
 	for (i = 0; i < GENERATIONS; ++i) {
 		int j = 0;
+		bestInPopulation = getBestIndex(population);
 		x = 1;
 		y = 1;
 		refresh();
 		createNewPopulation(population, newPopulation);
 		selectBestFromPreviousPopulation(newPopulation, population);
 		fprintf(f_csv, "\n %d, %d",
-				newPopulation[getBestIndex(newPopulation)].fitness,
+				newPopulation[bestInPopulation].fitness,
 				calculatePopulationFitness(newPopulation, POPULATION_SIZE) / POPULATION_SIZE);
 
 		if ((i % 100) == 0) {
 			//printf("Completed: %2.2f\%\n", ((float)i/(float)GENERATIONS)*100.0);
 		}
 
+		 for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
+			x+=20;
+		 	if ((j + 1) % RULE_LENGTH != 0) {
+				//move(y,x);
+		 		mvprintw(y,x,"{%f,%f}",population[bestInPopulation].gene[j].lowerBound,population[bestInPopulation].gene[j].upperBound);
 
-		for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
-			if ((j + 1) % RULE_LENGTH != 0) {
-				mvaddch(y,x,newPopulation[getBestIndex(newPopulation)].gene[j]);
-			} else {
-				mvaddch(y,++x,'|');
-				mvaddch(y,++x,newPopulation[getBestIndex(newPopulation)].gene[j]);
-				y++;
-				x=0;
-			}
-			x++;
+		 	} else {
+		 		mvaddch(y,++x,'|');
+		 		mvaddch(y,++x,newPopulation[getBestIndex(newPopulation)].gene[j].output);
+		 		y++;
+				x=1;
+		 	}
 
-		}
+
+		 }
 		move(100, 100);
 		mvaddstr(++y, x, "Generation: ");
-		printw("%d",i);
+		printw("%d    ",i);
 		mvaddstr(++y, x, "Fitness: ");
-		printw("%d", newPopulation[getBestIndex(newPopulation)].fitness);
+		printw("%d    ", population[bestInPopulation].fitness);
 		//printf("Generation: %d Fitness: %d\n", i, newPopulation[getBestIndex(newPopulation)].fitness);
 		//printf("Worst: %s, Generation: %d Fitness: %d\n", newPopulation[getWorstIndex(newPopulation)].gene, i, newPopulation[getWorstIndex(newPopulation)].fitness);
+
 		memcpy(population, newPopulation, sizeof(struct individual) * POPULATION_SIZE);
-		mvaddstr(++y, x, "Test: ");
-		printw("%d", checkHasLearned(&newPopulation[getBestIndex(newPopulation)]));
+//		mvaddstr(++y, x, "Test: ");
+//		printw("%d", checkHasLearned(&newPopulation[getBestIndex(newPopulation)]));
 
-    if(newPopulation[getBestIndex(newPopulation)].fitness == TRAINING_ROWS){
-			break;
-		}
 
-		if(tSize > 100){
-			//tSize = tSize/2;
-		}
 
 	}
 
@@ -106,15 +106,15 @@ int main(void) {
 
 	//fclose(f_csv);
 
-	mvaddstr(++y, x, "Found Fittest Individual!");
-	y+=2;
-	mvaddstr(y, x, newPopulation[getBestIndex(newPopulation)].gene);
-	y+=2;
-	mvaddstr(y, x, "Fitness: ");
-	printw("%d", newPopulation[getBestIndex(newPopulation)].fitness);
-
-	mvaddstr(++y, x, "Test: ");
-  printw("%d", checkHasLearned(&newPopulation[getBestIndex(newPopulation)]));
+	// mvaddstr(++y, x, "Found Fittest Individual!");
+	// y+=2;
+	// mvaddstr(y, x, newPopulation[getBestIndex(newPopulation)].gene);
+	// y+=2;
+	// mvaddstr(y, x, "Fitness: ");
+	// printw("%d", newPopulation[getBestIndex(newPopulation)].fitness);
+//
+	// mvaddstr(++y, x, "Test: ");
+  // printw("%d", checkHasLearned(&newPopulation[getBestIndex(newPopulation)]));
 
 	out = fopen(OUTPUT_FILE, "w");
 
@@ -128,12 +128,12 @@ int main(void) {
 	free(population);
 	free(newPopulation);
 
-	mvaddstr(++y,x, "Press any key to exit");
+	// mvaddstr(++y,x, "Press any key to exit");
 	getch();
 
-	delwin(mainwin);
-  endwin();
-  refresh();
+	// delwin(mainwin);
+  // endwin();
+  // refresh();
 }
 
 long calculatePopulationFitness(struct individual *population, int arrSize) {
@@ -186,24 +186,25 @@ int calculateFitness(struct individual *individual) {
 		for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
 			score = 0;
 			for (int k = 0; k < RULE_LENGTH-1; k++) {
-					if (individual->gene[j] != '#') {
-						if (individual->gene[j] == trainingData[i].input[k]) {
+					//if (individual->gene[j] != '#') {
+						if ((individual->gene[j].lowerBound < trainingData[i].input[k]) &&
+								(individual->gene[j].upperBound > trainingData[i].input[k])) {
 							++score;
 						}
-					}
-					else{
-						++score;
-					}
+					//}
+					//else{
+					//	++score;
+					//}
 				++j;
 			}
 
 			if (score == RULE_LENGTH-1) {
-				if (individual->gene[j] == trainingData[i].output) {
+				if (individual->gene[j].output == trainingData[i].output) {
 					fitness++;
 					break;
 				} else {
 					//i = TRAINING_ROWS;
-					break;
+					//break;
 				}
 			}
 		}
@@ -234,10 +235,7 @@ struct childPair crossover(struct individual parent1, struct individual parent2)
 		children.child[0] = parent1;
 		children.child[1] = parent2;
 	}
-	children.child[0].gene[INDIVIDUAL_LENGTH] = '\0';
-	children.child[1].gene[INDIVIDUAL_LENGTH] = '\0';
-	//children.child[0].fitness = calculateFitness(children.child[0]);
-	//children.child[1].fitness = calculateFitness(children.child[1]);
+
 
 	return children;
 
@@ -245,13 +243,53 @@ struct childPair crossover(struct individual parent1, struct individual parent2)
 
 void createNewPopulation(struct individual *oldPopulation,
 		struct individual *newPopulation) {
-	struct childPair temp;
 	int i = 0;
+	int rc;
 
-	for (i = 0; i < POPULATION_SIZE; ++i) {
-		refresh();
-		mvaddstr(1, 30, "Working on new population individual: ");
-		printw("%d   ",i);
+	int split = POPULATION_SIZE / NUM_THREADS;
+	struct threadData data[NUM_THREADS];
+	pthread_t threads[NUM_THREADS];
+	pthread_attr_t attr;
+
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+
+	for (int i = 0; i < NUM_THREADS; ++i) {
+		data[i].oldPopulation = oldPopulation;
+		data[i].newPopulation = newPopulation;
+		data[i].startIndex = split * i;
+		data[i].stopPoint = data[i].startIndex + split;
+		rc = pthread_create(&threads[i], &attr, runThread, (void *) &data[i]);
+		if (rc) {
+			printf("ERROR; return code from pthread_create() is %d\n", rc);
+			exit(-1);
+		}
+	}
+
+	pthread_attr_destroy(&attr);
+
+	for (int i = 0; i < NUM_THREADS; ++i) {
+		rc = pthread_join(threads[i], NULL);
+		if (rc) {
+			printf("ERROR; return code from pthread_create() is %d\n", rc);
+			exit(-1);
+		}
+	}
+
+}
+
+void *runThread(void *threadArgs) {
+	int i = 0;
+	struct childPair temp;
+	struct threadData *data;
+	struct individual *oldPopulation;
+	struct individual *newPopulation;
+
+	data = (struct threadData *) threadArgs;
+	oldPopulation = data->oldPopulation;
+	newPopulation = data->newPopulation;
+
+	for (i = data->startIndex; i < data->stopPoint; ++i) {
 		//Carry out 2 tournaments to select 2 parents for mating
 		int p1 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
 		int p2 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
@@ -270,36 +308,19 @@ void createNewPopulation(struct individual *oldPopulation,
 			newPopulation[i].fitness = calculateFitness(&newPopulation[i]);
 		}
 	}
-}
-
-void selectFittest(struct individual *oldPopulation,
-		struct individual *newPopulation) {
-	int i = 0;
-	//Select the fittest parents
-	for (i = 0; i < POPULATION_SIZE; ++i) {
-		int p1 = rand() % POPULATION_SIZE; // First parent
-		int p2 = rand() % POPULATION_SIZE; // Second parent
-
-		if (oldPopulation[p1].fitness >= oldPopulation[p2].fitness) {
-			newPopulation[i] = oldPopulation[p1];
-
-		} else {
-			newPopulation[i] = oldPopulation[p2];
-
-		}
-	}
+	pthread_exit((void *) threadArgs);
 }
 
 int tournamentSelection(struct individual *population, int tournamentSize,
 		int populationSize) {
-	int best = NULL;
+	int best = -1;
 	int challengerIndex = 0;
 	int i = 0;
 
 	// Select tournament pool for this iteration
 	for (i = 0; i < tournamentSize; ++i) {
 		challengerIndex = rand() % populationSize;
-		if ((best == NULL)
+		if ((best == -1)
 				|| (population[challengerIndex].fitness
 						>= population[best].fitness)) {
 			best = challengerIndex;
@@ -311,22 +332,27 @@ int tournamentSelection(struct individual *population, int tournamentSize,
 }
 
 void mutateIndividual(struct individual *individual) {
-	int vals[3] = { '0', '1', '#' };
+	int vals[3] = { '0', '1' };
 	for (int i = 0; i < INDIVIDUAL_LENGTH; ++i) {
 		int mutateTo = 0;
 		if (probability(0, MT_PROB)) {
 			if ((i+1) % (RULE_LENGTH) != 0) {
-				mutateTo = rand()%3;
-				while(vals[mutateTo] == individual->gene[i]){
-					mutateTo = rand()%3;
+				if(rand()%2==0){
+					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound - 0.1);
+				} else {
+					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound + 0.1);
 				}
-				individual->gene[i] = vals[mutateTo];
+				if(rand()%2==0){
+					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound - 0.1);
+				} else {
+					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound + 0.1);
+				}
 			} else {
 				mutateTo = rand()%2;
-				while(vals[mutateTo] == individual->gene[i]){
+				while(vals[mutateTo] == individual->gene[i].output){
 					mutateTo = rand()%2;
 				}
-				individual->gene[i] = vals[mutateTo];
+				individual->gene[i].output = vals[mutateTo];
 			}
 		}
 	}
@@ -347,32 +373,31 @@ void selectBestFromPreviousPopulation(struct individual* newPopulation,
 }
 
 int getBestIndex(struct individual* population) {
-	int best = NULL;
+	int best = -1;
 	int i = 0;
 
 	for (i = 0; i < POPULATION_SIZE; ++i) {
-		if ((best == NULL)
+		if ((best == -1)
 				|| (population[i].fitness > population[best].fitness)) {
 			best = i;
-		} else if (population[i].fitness == population[best].fitness) {
-			int random = rand()%2;
-			if(random == 0){
-				best = i;
-			} else {
-			  best = best;
-			}
 		}
+		//else if (population[i].fitness == population[best].fitness) {
+		//	int random = rand()%2;
+		//	if(random == 0){
+		//		best = i;
+		//	}
+		//}
 	}
 
 	return best;
 }
 
 int getWorstIndex(struct individual* population) {
-	int worst = NULL;
+	int worst = -1;
 	int i = 0;
 
 	for (i = 0; i < POPULATION_SIZE; ++i) {
-		if ((worst == NULL)
+		if ((worst == -1)
 				|| (population[i].fitness <= population[worst].fitness)) {
 			worst = i;
 		}
@@ -394,13 +419,12 @@ void readInData() {
 	int i = 0;
 
 	while ((line = fgets(input_test, 2048, f_data)) != NULL) {
+
 		record = strtok(line, " ");
-
 		for (int j = 0; j < RULE_LENGTH - 1; j++) {
-			allData[i].input[j] = (record[j]);
+			allData[i].input[j] = atof(record);
+			record = strtok(NULL, " ");
 		}
-
-		record = strtok(NULL, " ");
 		allData[i].output = *record;
 
 		++i;
@@ -450,42 +474,40 @@ int checkHasLearned(struct individual *individual) {
 	int outputIndex = 0;
 	int yays = 0;
 
-	for (i = 0; i < TESTING_ROWS; ++i) {
-		int k = 0;
-		for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
-			score = 0;
-			for (int k = 0; k < RULE_LENGTH-1; k++) {
-
-					if (individual->gene[j] != '#') {
-						if (individual->gene[j] == allData[i].input[k]) {
-							++score;
-						}
-					} else {
-						++score;
-					}
-
-				++j;
-			}
-
-			if (score == RULE_LENGTH-1) {
-				if (individual->gene[j] == allData[i].output) {
-					//printf("checked gene: %d\n", j+1);
-					yays++;
-					break;
-				} else {
-					//i = TESTING_ROWS;
-					break;
-				}
-			}
-		}
-	}
+	// for (i = 0; i < TESTING_ROWS; ++i) {
+	// 	int k = 0;
+	// 	for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
+	// 		score = 0;
+	// 		for (int k = 0; k < RULE_LENGTH-1; k++) {
+	//
+	// 				if (individual->gene[j] != '#') {
+	// 					if (individual->gene[j] == allData[i].input[k]) {
+	// 						++score;
+	// 					}
+	// 				} else {
+	// 					++score;
+	// 				}
+	//
+	// 			++j;
+	// 		}
+	//
+	// 		if (score == RULE_LENGTH-1) {
+	// 			if (individual->gene[j] == allData[i].output) {
+	// 				//printf("checked gene: %d\n", j+1);
+	// 				yays++;
+	// 				break;
+	// 			} else {
+	// 				//i = TESTING_ROWS;
+	// 				break;
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	return yays;
 }
 
-double randfrom(double min, double max) 
-{
-    double range = (max - min); 
-    double div = RAND_MAX / range;
-    return min + (rand() / div);
+double randfrom(double min, double max) {
+		double random = (double) rand() / RAND_MAX;
+		return min + (random * (max - min));
 }

@@ -7,30 +7,35 @@
 #include <unistd.h>
 #include <string.h>
 #include <curses.h>
+#include <math.h>
+#include <pthread.h>
 
 #define GENERATIONS 100000
-#define POPULATION_SIZE 500000
-#define RULE_LENGTH 12
-#define NO_RULES 9
+#define POPULATION_SIZE 5000
+#define RULE_LENGTH 7
+#define NO_RULES 40
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
-#define TRAINING_ROWS 1844
-#define TESTING_ROWS 2048
-#define T_SIZE 100
+#define TRAINING_ROWS 2000
+#define TESTING_ROWS 2000
+#define T_SIZE 2
 #define PROB_ACC 1000
-#define CV_PROB 700 // Crossover probability
-#define MT_PROB 1//(1/POPULATION_SIZE + 1/INDIVIDUAL_LENGTH)/2 // Mutation probability
+#define CV_PROB 0 // Crossover probability
+#define MT_PROB 100//(1/POPULATION_SIZE + 1/INDIVIDUAL_LENGTH)/2 // Mutation probability
 
-#define DATA_FILE "data2.txt"
+#define DATA_FILE "data3.txt"
 #define OUTPUT_FILE "out.txt"
+
+#define NUM_THREADS 20
+
+struct chromosome{
+    double lowerBound;
+    double upperBound;
+    int output;
+};
 
 struct individual{
   struct chromosome gene[INDIVIDUAL_LENGTH + 1];
   int fitness;
-};
-
-struct chromosome{
-    float lowerBound;
-    float upperBound;    
 };
 
 struct childPair{
@@ -38,8 +43,16 @@ struct childPair{
 };
 
 struct ioData{
-  float input[RULE_LENGTH];
+  double input[RULE_LENGTH];
   char output;
+};
+
+struct threadData{
+    struct individual* oldPopulation;
+    struct individual* newPopulation;
+    int startIndex;
+    int stopPoint;
+    int fitness;
 };
 
 long calculatePopulationFitness(
@@ -50,7 +63,6 @@ int calculateFitness(struct individual *individual);
 struct childPair crossover(struct individual parent1,
             struct individual parent2);
 void createNewPopulation(struct individual *oldPopulation, struct individual *newPopulation);
-void selectFittest(struct individual *oldPopulation, struct individual *newPopulation);
 int tournamentSelection(struct individual *population, int tournamentSize, int populationSize);
 void mutateIndividual(struct individual *individual);
 void selectBestFromPreviousPopulation(struct individual* newPopulation, struct individual* oldPopulation);
@@ -61,6 +73,7 @@ void readInData();
 void selectTrainingData();
 int checkHasLearned(struct individual *individual);
 double randfrom(double min, double max);
+void *runThread(void *threadArgs);
 
 WINDOW * mainwin;
 
