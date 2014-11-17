@@ -101,9 +101,12 @@ int main(void) {
 		printw("%f    ", timeSpent);
 
 		memcpy(population, newPopulation, sizeof(struct individual) * POPULATION_SIZE);
-//		mvaddstr(++y, x, "Test: ");
-//		printw("%d", checkHasLearned(&newPopulation[getBestIndex(newPopulation)]));
+		mvaddstr(++y, x, "Test: ");
+		printw("%d    ", checkHasLearned(&population[bestInPopulation]));
 
+		if(population[bestInPopulation].fitness == TRAINING_ROWS){
+			break;
+		}
 
 
 	}
@@ -112,15 +115,15 @@ int main(void) {
 
 	//fclose(f_csv);
 
-	// mvaddstr(++y, x, "Found Fittest Individual!");
-	// y+=2;
-	// mvaddstr(y, x, newPopulation[getBestIndex(newPopulation)].gene);
-	// y+=2;
-	// mvaddstr(y, x, "Fitness: ");
-	// printw("%d", newPopulation[getBestIndex(newPopulation)].fitness);
-//
-	// mvaddstr(++y, x, "Test: ");
-  // printw("%d", checkHasLearned(&newPopulation[getBestIndex(newPopulation)]));
+	//mvaddstr(++y, x, "Found Fittest Individual!");
+	//y+=2;
+	//mvaddstr(y, x, newPopulation[getBestIndex(newPopulation)].gene);
+	//y+=2;
+	//mvaddstr(y, x, "Fitness: ");
+	//printw("%d", newPopulation[getBestIndex(newPopulation)].fitness);
+
+//	mvaddstr(++y, x, "Test: ");
+//  printw("%d", checkHasLearned(population[bestInPopulation]));
 
 	out = fopen(OUTPUT_FILE, "w");
 
@@ -339,19 +342,27 @@ int tournamentSelection(struct individual *population, int tournamentSize,
 
 void mutateIndividual(struct individual *individual) {
 	int vals[3] = { '0', '1' };
+	double fpVals[8] = {0.5, 0.2, 0.1, 0.01, 0.001, 0.0001, 0.00001, 0.000001};
 	for (int i = 0; i < INDIVIDUAL_LENGTH; ++i) {
 		int mutateTo = 0;
 		if (probability(0, MT_PROB)) {
 			if ((i+1) % (RULE_LENGTH) != 0) {
 				if(rand()%2==0){
-					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound - 0.0001);
+					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound - fpVals[rand()%8]);
 				} else {
-					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound + 0.0001);
+					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound + fpVals[rand()%8]);
 				}
 				if(rand()%2==0){
-					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound - 0.0001);
+					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound - fpVals[rand()%8]);
 				} else {
-					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound + 0.0001);
+					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound + fpVals[rand()%8]);
+				}
+
+				if(individual->gene[i].lowerBound < 0){
+					individual->gene[i].lowerBound = 0.000000;
+				}
+				if (individual->gene[i].upperBound > 1){
+					individual->gene[i].upperBound = 1.000000;
 				}
 			} else {
 				mutateTo = rand()%2;
