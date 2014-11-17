@@ -57,11 +57,15 @@ int main(void) {
 	int bestInPopulation = 0;
 	for (i = 0; i < GENERATIONS; ++i) {
 		int j = 0;
+		time_t begin, end = 0;
+		double timeSpent = 0;
+		begin = clock();
 		bestInPopulation = getBestIndex(population);
 		x = 1;
 		y = 1;
 		refresh();
 		createNewPopulation(population, newPopulation);
+
 		selectBestFromPreviousPopulation(newPopulation, population);
 		fprintf(f_csv, "\n %d, %d",
 				newPopulation[bestInPopulation].fitness,
@@ -86,11 +90,15 @@ int main(void) {
 
 
 		 }
+		end = clock();
+		timeSpent = (double)(end - begin)/CLOCKS_PER_SEC;
 		move(100, 100);
 		mvaddstr(++y, x, "Generation: ");
 		printw("%d    ",i);
 		mvaddstr(++y, x, "Fitness: ");
 		printw("%d    ", population[bestInPopulation].fitness);
+		mvaddstr(++y, x, "Time to calculate generation: ");
+		printw("%f    ", timeSpent);
 
 		memcpy(population, newPopulation, sizeof(struct individual) * POPULATION_SIZE);
 //		mvaddstr(++y, x, "Test: ");
@@ -336,14 +344,14 @@ void mutateIndividual(struct individual *individual) {
 		if (probability(0, MT_PROB)) {
 			if ((i+1) % (RULE_LENGTH) != 0) {
 				if(rand()%2==0){
-					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound - 0.001);
+					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound - 0.0001);
 				} else {
-					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound + 0.001);
+					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound + 0.0001);
 				}
 				if(rand()%2==0){
-					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound - 0.001);
+					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound - 0.0001);
 				} else {
-					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound + 0.001);
+					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound + 0.0001);
 				}
 			} else {
 				mutateTo = rand()%2;
