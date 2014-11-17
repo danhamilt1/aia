@@ -11,21 +11,21 @@
 #include <pthread.h>
 
 #define GENERATIONS 100000
-#define POPULATION_SIZE 5000
+#define POPULATION_SIZE 50000
 #define RULE_LENGTH 7
-#define NO_RULES 40
+#define NO_RULES 20
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
 #define TRAINING_ROWS 2000
 #define TESTING_ROWS 2000
-#define T_SIZE 2
+#define T_SIZE 5
 #define PROB_ACC 1000
-#define CV_PROB 0 // Crossover probability
+#define CV_PROB 600 // Crossover probability
 #define MT_PROB 100//(1/POPULATION_SIZE + 1/INDIVIDUAL_LENGTH)/2 // Mutation probability
 
 #define DATA_FILE "data3.txt"
 #define OUTPUT_FILE "out.txt"
 
-#define NUM_THREADS 20
+#define NUM_THREADS 50
 
 struct chromosome{
     double lowerBound;

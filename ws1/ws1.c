@@ -91,8 +91,6 @@ int main(void) {
 		printw("%d    ",i);
 		mvaddstr(++y, x, "Fitness: ");
 		printw("%d    ", population[bestInPopulation].fitness);
-		//printf("Generation: %d Fitness: %d\n", i, newPopulation[getBestIndex(newPopulation)].fitness);
-		//printf("Worst: %s, Generation: %d Fitness: %d\n", newPopulation[getWorstIndex(newPopulation)].gene, i, newPopulation[getWorstIndex(newPopulation)].fitness);
 
 		memcpy(population, newPopulation, sizeof(struct individual) * POPULATION_SIZE);
 //		mvaddstr(++y, x, "Test: ");
@@ -338,14 +336,14 @@ void mutateIndividual(struct individual *individual) {
 		if (probability(0, MT_PROB)) {
 			if ((i+1) % (RULE_LENGTH) != 0) {
 				if(rand()%2==0){
-					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound - 0.1);
+					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound - 0.001);
 				} else {
-					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound + 0.1);
+					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound + 0.001);
 				}
 				if(rand()%2==0){
-					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound - 0.1);
+					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound - 0.001);
 				} else {
-					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound + 0.1);
+					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound + 0.001);
 				}
 			} else {
 				mutateTo = rand()%2;
@@ -470,39 +468,38 @@ void selectTrainingData(){
 int checkHasLearned(struct individual *individual) {
 	int i = 0;
 	int j = 0;
+	int fitness = 0;
 	int score = 0;
-	int outputIndex = 0;
 	int yays = 0;
 
-	// for (i = 0; i < TESTING_ROWS; ++i) {
-	// 	int k = 0;
-	// 	for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
-	// 		score = 0;
-	// 		for (int k = 0; k < RULE_LENGTH-1; k++) {
-	//
-	// 				if (individual->gene[j] != '#') {
-	// 					if (individual->gene[j] == allData[i].input[k]) {
-	// 						++score;
-	// 					}
-	// 				} else {
-	// 					++score;
-	// 				}
-	//
-	// 			++j;
-	// 		}
-	//
-	// 		if (score == RULE_LENGTH-1) {
-	// 			if (individual->gene[j] == allData[i].output) {
-	// 				//printf("checked gene: %d\n", j+1);
-	// 				yays++;
-	// 				break;
-	// 			} else {
-	// 				//i = TESTING_ROWS;
-	// 				break;
-	// 			}
-	// 		}
-	// 	}
-	// }
+	for (i = 0; i < TRAINING_ROWS; ++i) {
+		int k = 0;
+		for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
+			score = 0;
+			for (int k = 0; k < RULE_LENGTH-1; k++) {
+					//if (individual->gene[j] != '#') {
+						if ((individual->gene[j].lowerBound < trainingData[i].input[k]) &&
+								(individual->gene[j].upperBound > trainingData[i].input[k])) {
+							++score;
+						}
+					//}
+					//else{
+					//	++score;
+					//}
+				++j;
+			}
+
+			if (score == RULE_LENGTH-1) {
+				if (individual->gene[j].output == trainingData[i].output) {
+					yays++;
+					break;
+				} else {
+					//i = TRAINING_ROWS;
+					//break;
+				}
+			}
+		}
+	}
 
 	return yays;
 }
