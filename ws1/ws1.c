@@ -26,7 +26,9 @@ int main(void) {
 
 	f_csv = fopen("history.csv", "w");
 
-	fprintf(f_csv, "BEST FITNESS, MEAN,");
+	fprintf(f_csv, "BEST FITNESS, TEST, MEAN,");
+
+	fclose(f_csv);
 
 	refresh();
 	//Set-up initial population
@@ -65,11 +67,16 @@ int main(void) {
 		y = 1;
 		refresh();
 		createNewPopulation(population, newPopulation);
-
 		selectBestFromPreviousPopulation(newPopulation, population);
-		fprintf(f_csv, "\n %d, %d",
-				newPopulation[bestInPopulation].fitness,
+
+
+		f_csv = fopen("history.csv", "a");
+		fprintf(f_csv, "\n %d, %d, %d",
+				population[bestInPopulation].fitness,
+				checkHasLearned(&population[bestInPopulation]),
 				calculatePopulationFitness(newPopulation, POPULATION_SIZE) / POPULATION_SIZE);
+		fclose(f_csv);
+
 
 		if ((i % 100) == 0) {
 			//printf("Completed: %2.2f\%\n", ((float)i/(float)GENERATIONS)*100.0);
@@ -100,14 +107,13 @@ int main(void) {
 		mvaddstr(++y, x, "Time to calculate generation: ");
 		printw("%f    ", timeSpent);
 
-		memcpy(population, newPopulation, sizeof(struct individual) * POPULATION_SIZE);
 		mvaddstr(++y, x, "Test: ");
 		printw("%d    ", checkHasLearned(&population[bestInPopulation]));
 
 		if(population[bestInPopulation].fitness == TRAINING_ROWS){
 			break;
 		}
-
+		memcpy(population, newPopulation, sizeof(struct individual) * POPULATION_SIZE);
 
 	}
 
@@ -130,7 +136,7 @@ int main(void) {
 	fprintf(out, "Test matches: %d", checkHasLearned(&newPopulation[getBestIndex(newPopulation)]));
 
 	fclose(out);
-	fclose(f_csv);
+	//fclose(f_csv);
 
 	free(trainingData);
 	free(allData);
@@ -140,9 +146,9 @@ int main(void) {
 	// mvaddstr(++y,x, "Press any key to exit");
 	getch();
 
-	// delwin(mainwin);
-  // endwin();
-  // refresh();
+	delwin(mainwin);
+  endwin();
+  refresh();
 }
 
 long calculatePopulationFitness(struct individual *population, int arrSize) {
@@ -195,15 +201,12 @@ int calculateFitness(struct individual *individual) {
 		for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
 			score = 0;
 			for (int k = 0; k < RULE_LENGTH-1; k++) {
-					//if (individual->gene[j] != '#') {
+
 						if ((individual->gene[j].lowerBound < trainingData[i].input[k]) &&
 								(individual->gene[j].upperBound > trainingData[i].input[k])) {
 							++score;
 						}
-					//}
-					//else{
-					//	++score;
-					//}
+
 				++j;
 			}
 
@@ -212,8 +215,7 @@ int calculateFitness(struct individual *individual) {
 					fitness++;
 					break;
 				} else {
-					//i = TRAINING_ROWS;
-					//break;
+					break;
 				}
 			}
 		}
@@ -342,20 +344,21 @@ int tournamentSelection(struct individual *population, int tournamentSize,
 
 void mutateIndividual(struct individual *individual) {
 	int vals[3] = { '0', '1' };
-	double fpVals[8] = {0.5, 0.2, 0.1, 0.01, 0.001, 0.0001, 0.00001, 0.000001};
+	double fpVals[8] = {0.3, 0.2, 0.1, 0.01, 0.001, 0.0001};
+	int numVals = 6;
 	for (int i = 0; i < INDIVIDUAL_LENGTH; ++i) {
 		int mutateTo = 0;
 		if (probability(0, MT_PROB)) {
 			if ((i+1) % (RULE_LENGTH) != 0) {
 				if(rand()%2==0){
-					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound - fpVals[rand()%8]);
+					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound - fpVals[rand()%numVals]);
 				} else {
-					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound + fpVals[rand()%8]);
+					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound + fpVals[rand()%numVals]);
 				}
 				if(rand()%2==0){
-					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound - fpVals[rand()%8]);
+					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound - fpVals[rand()%numVals]);
 				} else {
-					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound + fpVals[rand()%8]);
+					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound + fpVals[rand()%numVals]);
 				}
 
 				if(individual->gene[i].lowerBound < 0){
@@ -364,6 +367,13 @@ void mutateIndividual(struct individual *individual) {
 				if (individual->gene[i].upperBound > 1){
 					individual->gene[i].upperBound = 1.000000;
 				}
+				if(individual->gene[i].upperBound < 0){
+					individual->gene[i].upperBound = 0.000000;
+				}
+				if (individual->gene[i].lowerBound > 1){
+					individual->gene[i].lowerBound = 1.000000;
+				}
+
 			} else {
 				mutateTo = rand()%2;
 				while(vals[mutateTo] == individual->gene[i].output){
@@ -458,7 +468,6 @@ void selectTrainingData(){
 
 	for(i = 0; i < TRAINING_ROWS; i++){
 		selected[i] = -1;
-		printf("%d\n",i);
 	}
 
 	for(i = 0; i < TRAINING_ROWS; i++){
