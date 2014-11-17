@@ -74,18 +74,12 @@ int main(void) {
 		fprintf(f_csv, "\n %d, %d, %d",
 				population[bestInPopulation].fitness,
 				checkHasLearned(&population[bestInPopulation]),
-				calculatePopulationFitness(newPopulation, POPULATION_SIZE) / POPULATION_SIZE);
+				calculatePopulationFitness(population, POPULATION_SIZE) / POPULATION_SIZE);
 		fclose(f_csv);
-
-
-		if ((i % 100) == 0) {
-			//printf("Completed: %2.2f\%\n", ((float)i/(float)GENERATIONS)*100.0);
-		}
 
 		 for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
 			x+=20;
 		 	if ((j + 1) % RULE_LENGTH != 0) {
-				//move(y,x);
 		 		mvprintw(y,x,"{%f,%f}",population[bestInPopulation].gene[j].lowerBound,population[bestInPopulation].gene[j].upperBound);
 
 		 	} else {
@@ -97,16 +91,17 @@ int main(void) {
 
 
 		 }
+
 		end = clock();
 		timeSpent = (double)(end - begin)/CLOCKS_PER_SEC;
+
 		move(100, 100);
 		mvaddstr(++y, x, "Generation: ");
 		printw("%d    ",i);
 		mvaddstr(++y, x, "Fitness: ");
 		printw("%d    ", population[bestInPopulation].fitness);
 		mvaddstr(++y, x, "Time to calculate generation: ");
-		printw("%f    ", timeSpent);
-
+		printw("%f    ", MT_PROB);
 		mvaddstr(++y, x, "Test: ");
 		printw("%d    ", checkHasLearned(&population[bestInPopulation]));
 
@@ -117,19 +112,7 @@ int main(void) {
 
 	}
 
-  ////////////////////////
-
-	//fclose(f_csv);
-
-	//mvaddstr(++y, x, "Found Fittest Individual!");
-	//y+=2;
-	//mvaddstr(y, x, newPopulation[getBestIndex(newPopulation)].gene);
-	//y+=2;
-	//mvaddstr(y, x, "Fitness: ");
-	//printw("%d", newPopulation[getBestIndex(newPopulation)].fitness);
-
-//	mvaddstr(++y, x, "Test: ");
-//  printw("%d", checkHasLearned(population[bestInPopulation]));
+	// CLEAN UP
 
 	out = fopen(OUTPUT_FILE, "w");
 
@@ -163,7 +146,7 @@ long calculatePopulationFitness(struct individual *population, int arrSize) {
 
 bool probability(float minValue, float maxValue) {
 	bool retVal = false;
-	int randomNumber = rand() % PROB_ACC;
+	double randomNumber = randfrom(0.0,1.0);
 	// Check if value lands between bounds
 	if ((randomNumber >= minValue) && (randomNumber <= maxValue)) {
 		retVal = true;
@@ -349,20 +332,25 @@ void mutateIndividual(struct individual *individual) {
 	for (int i = 0; i < INDIVIDUAL_LENGTH; ++i) {
 		int mutateTo = 0;
 		if (probability(0, MT_PROB)) {
-			if ((i+1) % (RULE_LENGTH) != 0) {
+		if ((i+1) % (RULE_LENGTH) != 0) {
+			if (rand()%2 == 0) {
 				if(rand()%2==0){
 					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound - fpVals[rand()%numVals]);
 				} else {
 					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound + fpVals[rand()%numVals]);
 				}
+				if(individual->gene[i].lowerBound < 0){
+					individual->gene[i].lowerBound = 0.000000;
+				}
+
+				if (individual->gene[i].lowerBound > 1){
+					individual->gene[i].lowerBound = 1.000000;
+				}
+			} else {
 				if(rand()%2==0){
 					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound - fpVals[rand()%numVals]);
 				} else {
 					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound + fpVals[rand()%numVals]);
-				}
-
-				if(individual->gene[i].lowerBound < 0){
-					individual->gene[i].lowerBound = 0.000000;
 				}
 				if (individual->gene[i].upperBound > 1){
 					individual->gene[i].upperBound = 1.000000;
@@ -370,18 +358,16 @@ void mutateIndividual(struct individual *individual) {
 				if(individual->gene[i].upperBound < 0){
 					individual->gene[i].upperBound = 0.000000;
 				}
-				if (individual->gene[i].lowerBound > 1){
-					individual->gene[i].lowerBound = 1.000000;
-				}
-
-			} else {
+			}
+		}
+	} else {
 				mutateTo = rand()%2;
 				while(vals[mutateTo] == individual->gene[i].output){
 					mutateTo = rand()%2;
 				}
 				individual->gene[i].output = vals[mutateTo];
 			}
-		}
+
 	}
 
 }
