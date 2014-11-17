@@ -327,8 +327,8 @@ int tournamentSelection(struct individual *population, int tournamentSize,
 
 void mutateIndividual(struct individual *individual) {
 	int vals[3] = { '0', '1' };
-	double fpVals[8] = {0.3, 0.2, 0.1, 0.01, 0.001, 0.0001};
-	int numVals = 6;
+	double fpVals[8] = {0.3, 0.2, 0.1, 0.01, 0.001, 0.0001, 0.00001, 0.000001};
+	int numVals = 8;
 	for (int i = 0; i < INDIVIDUAL_LENGTH; ++i) {
 		int mutateTo = 0;
 		if (probability(0, MT_PROB)) {
