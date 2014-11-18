@@ -131,9 +131,9 @@ int main(void) {
 		mvaddstr(++y, x, "Test: ");
 		printw("%d    ", checkHasLearned(&population[bestInPopulation]));
 		mvaddstr(++y, x, "gMP: ");
-		printw("%f    ", gMP);
+		printw("%lf    ", gMP);
 		mvaddstr(++y, x, "gCP: ");
-		printw("%f    ", gCP);
+		printw("%lf    ", gCP);
 		mvaddstr(++y, x, "MT_PROB: ");
 		printw("%f    ", MT_PROB);
 		mvaddstr(++y, x, "CV_PROB: ");
@@ -157,7 +157,7 @@ int main(void) {
 			theta = 0.01;
 		}
 		///
-		theta = 0.01;
+		//theta = 0.01;
 		///
 
         if(gCP > gMP){
@@ -168,12 +168,12 @@ int main(void) {
             CV_PROB -= theta;
         }
 
-        if(CV_PROB < 0.001){
-            CV_PROB = 0.001;
+        if(CV_PROB < 0.01){
+            CV_PROB = 0.01;
         }
 
-				if(MT_PROB < MT_MIN){
-						MT_PROB = MT_MIN;
+				if(MT_PROB < 0.01){
+						MT_PROB = 0.01;
 				}
 
 
@@ -326,6 +326,8 @@ void createNewPopulation(struct individual *oldPopulation,
 	struct threadData data[NUM_THREADS];
 	pthread_t threads[NUM_THREADS];
 	pthread_attr_t attr;
+	int numCv;
+	int numMt;
 
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
@@ -357,12 +359,16 @@ void createNewPopulation(struct individual *oldPopulation,
 	}
 	gCP = 0;
 	gMP = 0;
+	numCv = 0;
+	numMt = 0;
 	for (int i = 0; i < NUM_THREADS; ++i) {
 	    gCP += data[i].CP;
 	    gMP += data[i].MP;
+			numCv += data[i].numCv;
+			numMt += data[i].numMt;
 	}
-	gCP = (1.0/(double)data[i].numCv)*(double)gCP;
-	gMP = (1.0/(double)data[i].numMt)*(double)gMP;
+	gCP = (1.0/(double)numCv)*(double)gCP;
+	gMP = (1.0/(double)numMt)*(double)gMP;
 
 }
 
@@ -403,7 +409,7 @@ void *runThread(void *threadArgs) {
 
 		}
 		p1_cv = oldPopulation[p1].fitness;
-		p2_cv = oldPopulation[p1].fitness;
+		p2_cv = oldPopulation[p2].fitness;
 		data->CP += (c1_cv+c2_cv)-(p1_cv+p2_cv);
 		data->MP += (c1_mt+c2_mt)-(c1_cv+c2_cv);
 
@@ -512,12 +518,12 @@ int getBestIndex(struct individual* population) {
 				|| (population[i].fitness >= population[best].fitness)) {
 			best = i;
 		}
-		else if (population[i].fitness == population[best].fitness) {
-			int random = rand()%2;
-			if(random == 0){
-				best = i;
-			}
-		}
+		// else if (population[i].fitness == population[best].fitness) {
+		// 	int random = rand()%2;
+		// 	if(random == 0){
+		// 		best = i;
+		// 	}
+		// }
 	}
 
 	return best;
@@ -532,12 +538,12 @@ int getWorstIndex(struct individual* population) {
 				|| (population[i].fitness <= population[worst].fitness)) {
 			worst = i;
 		}
-		else if (population[i].fitness == population[worst].fitness) {
-			int random = rand()%2;
-			if(random == 0){
-				worst = i;
-			}
-		}
+		// else if (population[i].fitness == population[worst].fitness) {
+		// 	int random = rand()%2;
+		// 	if(random == 0){
+		// 		worst = i;
+		// 	}
+		// }
 	}
 
 	return worst;

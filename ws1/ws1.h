@@ -26,7 +26,7 @@
 #define DATA_FILE "data3.txt"
 #define OUTPUT_FILE "out.txt"
 
-#define NUM_THREADS 12
+#define NUM_THREADS 1
 
 struct chromosome{
     double lowerBound;
