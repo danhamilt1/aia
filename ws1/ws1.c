@@ -53,45 +53,52 @@ int main(void) {
 	// NCurses coords
 	int x = 1;
 	int y = 1;
-
+	int bestInPopulation = 0;
 	for (i = 0; i < GENERATIONS; ++i) {
 		int j = 0;
 		x = 1;
 		y = 1;
+
+		bestInPopulation = getBestIndex(population);
+		numberOfMutations = 0;
+
 		refresh();
 		createNewPopulation(population, newPopulation);
 		selectBestFromPreviousPopulation(newPopulation, population);
+
+
 		fprintf(f_csv, "\n %d, %d",
-				newPopulation[getBestIndex(newPopulation)].fitness,
-				(int)calculatePopulationFitness(newPopulation,
+				population[bestInPopulation].fitness,
+				(int)calculatePopulationFitness(population,
 						POPULATION_SIZE) / POPULATION_SIZE);
 
 		if ((i % 100) == 0) {
 			//printf("Completed: %2.2f\%\n", ((float)i/(float)GENERATIONS)*100.0);
 		}
 
-		printIndividual(&newPopulation[getBestIndex(newPopulation)], &x, &y);
+		printIndividual(&population[bestInPopulation], &x, &y);
 
 		move(100, 100);
 		mvaddstr(++y, x, "Generation: ");
-		printw("%d", i);
+		printw("%d    ", i);
 		mvaddstr(++y, x, "Fitness: ");
-		printw("%d", newPopulation[getBestIndex(newPopulation)].fitness);
+		printw("%d    ", population[bestInPopulation].fitness);
+		mvaddstr(++y, x, "Mutation rate: ");
+		printw("%f    ", MT_PROB);
+		mvaddstr(++y, x, "Number of mutations this generation: ");
+		printw("%d    ", numberOfMutations);
 		//printf("Generation: %d Fitness: %d\n", i, newPopulation[getBestIndex(newPopulation)].fitness);
 		//printf("Worst: %s, Generation: %d Fitness: %d\n", newPopulation[getWorstIndex(newPopulation)].gene, i, newPopulation[getWorstIndex(newPopulation)].fitness);
-		memcpy(population, newPopulation,
-				sizeof(struct individual) * POPULATION_SIZE);
+
 		// mvaddstr(++y, x, "Test: ");
 		// printw("%d",
 		// 		checkHasLearned(&newPopulation[getBestIndex(newPopulation)]));
 
-		if (newPopulation[getBestIndex(newPopulation)].fitness == TRAINING_ROWS) {
+		if (population[bestInPopulation].fitness == TRAINING_ROWS) {
 			break;
 		}
-
-		if (tSize > 100) {
-			//tSize = tSize/2;
-		}
+		memcpy(population, newPopulation,
+				sizeof(struct individual) * POPULATION_SIZE);
 
 	}
 
@@ -164,7 +171,7 @@ long calculatePopulationFitness(struct individual *population, int arrSize) {
 
 bool probability(float minValue, float maxValue) {
 	bool retVal = false;
-	int randomNumber = rand() % PROB_ACC;
+	double randomNumber = randfrom(0.0,1.0);
 	// Check if value lands between bounds
 	if ((randomNumber >= minValue) && (randomNumber <= maxValue)) {
 		retVal = true;
@@ -371,17 +378,18 @@ void mutateIndividual(struct individual *individual) {
 	for (int i = 0; i < INDIVIDUAL_LENGTH; ++i) {
 		int mutateTo = 0;
 		if (probability(0, MT_PROB)) {
+			numberOfMutations++;
 			if ((i + 1) % (RULE_LENGTH) != 0) {
 				mutateTo = rand() % 3;
-				// while (vals[mutateTo] == individual->gene[i]) {
-				// 	mutateTo = rand() % 3;
-				// }
+				while (vals[mutateTo] == individual->gene[i]) {
+					mutateTo = rand() % 3;
+				}
 				individual->gene[i] = vals[mutateTo];
 			} else {
 				mutateTo = rand() % 2;
-				// while (vals[mutateTo] == individual->gene[i]) {
-				// 	mutateTo = rand() % 2;
-				// }
+				while (vals[mutateTo] == individual->gene[i]) {
+					mutateTo = rand() % 2;
+				}
 				individual->gene[i] = vals[mutateTo];
 			}
 		}
@@ -533,4 +541,9 @@ int checkHasLearned(struct individual *individual) {
 	}
 
 	return yays;
+}
+
+double randfrom(double min, double max) {
+		double random = (double) rand() / RAND_MAX;
+		return min + (random * (max - min));
 }
