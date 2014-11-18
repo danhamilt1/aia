@@ -18,6 +18,7 @@ int main(void) {
 		fprintf(stderr, "Error initialising ncurses.\n");
 		exit(EXIT_FAILURE);
 	}
+	curs_set(0);
 
 	srand(getSeed());
 
@@ -32,6 +33,7 @@ int main(void) {
 
 	refresh();
 	//Set-up initial population
+	mvaddstr(0,0,"Initialising population...");
 	for (i = 0; i < POPULATION_SIZE; ++i) {
 		char vals[3] = { '0', '1' };
 		for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
@@ -46,7 +48,22 @@ int main(void) {
 			//printf("%d, %lf, %lf, %d\n",i, population[i].gene[j].lowerBound, population[i].gene[j].upperBound, population[i].gene[j].output);
 		}
 		population[i].fitness = calculateFitness(&population[i]);
+		///
+		if(i%(POPULATION_SIZE/100)==0){
+			mvaddch(1,0,'[');
+			for(int prog = 0; prog < (double)i/(double)POPULATION_SIZE*50; prog++){
+				refresh();
+				mvaddch(1,prog+1,'#');
+			}
+			mvaddch(1,51,']');
+			mvprintw(1,53,"%1.2f\%", (double)i/(double)POPULATION_SIZE*100);
+			addch('\%');
+		}
+		///
 	}
+	mvaddch(1,50,'#');
+	mvprintw(1,53,"%1.2f\%", 100.00);
+	addstr(" Done!");
 
 	memcpy(newPopulation, population, sizeof(struct individual) * POPULATION_SIZE);
 
@@ -69,7 +86,7 @@ int main(void) {
 		createNewPopulation(population, newPopulation);
 		selectBestFromPreviousPopulation(newPopulation, population);
 
-
+		clear();
 		f_csv = fopen("history.csv", "a");
 		fprintf(f_csv, "\n %d, %d, %d",
 				population[bestInPopulation].fitness,
@@ -101,7 +118,7 @@ int main(void) {
 		mvaddstr(++y, x, "Fitness: ");
 		printw("%d    ", population[bestInPopulation].fitness);
 		mvaddstr(++y, x, "Time to calculate generation: ");
-		printw("%f    ", MT_PROB);
+		printw("%f    ", timeSpent);
 		mvaddstr(++y, x, "Test: ");
 		printw("%d    ", checkHasLearned(&population[bestInPopulation]));
 
