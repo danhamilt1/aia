@@ -121,6 +121,9 @@ int main(void) {
 
 		++gen;
 
+		double accuracy = (double)checkHasLearned(&population[bestInPopulation])/(double)TESTING_ROWS*100.0;
+		double accuracy2 = ((double)checkHasLearned(&population[bestInPopulation])-(double)population[bestInPopulation].fitness)/(double)(TESTING_ROWS-TRAINING_ROWS)*100;
+
 		move(100, 100);
 		mvaddstr(++y, x, "Generation: ");
 		printw("%d    ",i);
@@ -130,6 +133,10 @@ int main(void) {
 		printw("%f    ", timeSpent);
 		mvaddstr(++y, x, "Test: ");
 		printw("%d    ", checkHasLearned(&population[bestInPopulation]));
+		mvaddstr(++y, x, "Accuracy: ");
+		printw("%f    ", accuracy);
+		mvaddstr(++y, x, "Accuracy2: ");
+		printw("%f    ", accuracy2);
 		mvaddstr(++y, x, "gMP: ");
 		printw("%lf    ", gMP);
 		mvaddstr(++y, x, "gCP: ");
@@ -168,17 +175,17 @@ int main(void) {
             CV_PROB -= theta;
         }
 
-        if(CV_PROB < 0.01){
-            CV_PROB = 0.01;
+        if(CV_PROB < 0.001){
+            CV_PROB = 0.1;
         }
 
-				if(MT_PROB < 0.01){
-						MT_PROB = 0.01;
+				if(MT_PROB < 0.001){
+						MT_PROB = 0.3;
 				}
 
 
 				if(CV_PROB > 1.0){
-					CV_PROB = 1.0;
+					CV_PROB = 0.8;
 				}
 				if(MT_PROB > 1.0){
 					MT_PROB = 1.0;
@@ -291,21 +298,34 @@ int calculateFitness(struct individual *individual) {
 
 struct childPair crossover(struct individual parent1, struct individual parent2) {
 	struct childPair children;
-	int splitPoint = rand() % INDIVIDUAL_LENGTH;
+	int splitPoint = (rand() % NO_RULES) * RULE_LENGTH;
+	int splitPoint2 = (rand() % NO_RULES) * RULE_LENGTH;
 	int i = 0;
+	int j = 0;
 
 	if (probability(0, CV_PROB)) {
-	    children.happened = 1;
+		children.happened = 2;
 		for (i = 0; i < splitPoint; ++i) {
 			children.child[0].gene[i] = parent1.gene[i];
-			children.child[1].gene[i] = parent2.gene[i];
+		}
+		for (i = splitPoint; i < splitPoint + RULE_LENGTH; ++i) {
+			children.child[0].gene[i] = parent2.gene[i];
+		}
+		for (i = splitPoint + RULE_LENGTH; i < INDIVIDUAL_LENGTH; ++i) {
+			children.child[0].gene[i] = parent1.gene[i];
 		}
 
-		for (i = splitPoint; i < INDIVIDUAL_LENGTH; ++i) {
-			children.child[0].gene[i] = parent2.gene[i];
-			children.child[1].gene[i] = parent1.gene[i];
+		for (j = 0; j < splitPoint2; ++j) {
+			children.child[1].gene[j] = parent2.gene[j];
 		}
-        children.happened = 1;
+		for(j = splitPoint2; j < splitPoint2 + RULE_LENGTH; ++j){
+			children.child[1].gene[j] = parent1.gene[j];
+			//children.happened++;
+		}
+		for(j = splitPoint2 + RULE_LENGTH; j < INDIVIDUAL_LENGTH; ++j){
+			children.child[1].gene[j] = parent2.gene[j];
+		}
+
 	} else {
 		children.child[0] = parent1;
 		children.child[1] = parent2;
@@ -367,6 +387,7 @@ void createNewPopulation(struct individual *oldPopulation,
 			numCv += data[i].numCv;
 			numMt += data[i].numMt;
 	}
+
 	gCP = (1.0/(double)numCv)*(double)gCP;
 	gMP = (1.0/(double)numMt)*(double)gMP;
 
@@ -378,7 +399,7 @@ void *runThread(void *threadArgs) {
 	struct threadData *data;
 	struct individual *oldPopulation;
 	struct individual *newPopulation;
-    int p1_cv, p2_cv, c1_cv, c2_cv, c1_mt, c2_mt = 0;
+  int p1_cv = 0, p2_cv = 0, c1_cv = 0, c2_cv = 0, c1_mt = 0, c2_mt = 0;
 
 	data = (struct threadData *) threadArgs;
 	oldPopulation = data->oldPopulation;
@@ -401,7 +422,7 @@ void *runThread(void *threadArgs) {
 		++i;
 
 		if (i != data->stopPoint) {
-		    c2_cv = calculateFitness(&temp.child[1]);
+		  c2_cv = calculateFitness(&temp.child[1]);
 			data->numMt += mutateIndividual(&temp.child[1]);
 			newPopulation[i] = temp.child[1];
 			newPopulation[i].fitness = calculateFitness(&newPopulation[i]);
@@ -444,14 +465,20 @@ int mutateIndividual(struct individual *individual) {
 	for (int i = 0; i < INDIVIDUAL_LENGTH; ++i) {
 		int mutateTo = 0;
 
+		if(individual->gene[i].lowerBound > individual->gene[i].upperBound){
+				double swap = individual->gene[i].lowerBound;
+				individual->gene[i].lowerBound = individual->gene[i].upperBound;
+				individual->gene[i].upperBound = swap;
+		}
+
 		if (probability(0, MT_PROB)) {
 		if ((i+1) % (RULE_LENGTH) != 0) {
+			mutations++;
 			if(rand()%2==0){
-				mutations++;
 				if(rand()%2==0){
-					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound - 0.01);//randfrom(0,0.05));
+					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound - randfrom(0,0.1));
 				} else {
-					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound + 0.01);//randfrom(0,0.05));
+					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound + randfrom(0,0.1));
 				}
 				if(individual->gene[i].lowerBound < 0){
 					individual->gene[i].lowerBound = 0.000000;
@@ -462,11 +489,10 @@ int mutateIndividual(struct individual *individual) {
 				}
 			}
 			if(rand()%2==0) {
-				mutations++;
 				if(rand()%2==0){
-					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound - 0.01);//randfrom(0,0.05));
+					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound - randfrom(0,0.1));
 				} else {
-					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound + 0.01);//randfrom(0,0.05));
+					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound + randfrom(0,0.1));
 				}
 				if (individual->gene[i].upperBound > 1){
 					individual->gene[i].upperBound = 1.000000;
@@ -474,13 +500,6 @@ int mutateIndividual(struct individual *individual) {
 				if(individual->gene[i].upperBound < 0){
 					individual->gene[i].upperBound = 0.000000;
 				}
-			}
-
-
-			if(individual->gene[i].lowerBound > individual->gene[i].upperBound){
-			    double swap = individual->gene[i].lowerBound;
-			    individual->gene[i].lowerBound = individual->gene[i].upperBound;
-			    individual->gene[i].upperBound = swap;
 			}
 		} else {
 				mutations++;
@@ -503,8 +522,8 @@ void selectBestFromPreviousPopulation(struct individual* newPopulation,
 	int i = 0;
 
 	if (oldPopulation[bestOld].fitness > newPopulation[bestNew].fitness) {
-		int worstIndex = getWorstIndex(newPopulation);
-		memcpy(&newPopulation[worstIndex], &oldPopulation[bestOld],
+		//int worstIndex = getWorstIndex(newPopulation);
+		memcpy(&newPopulation[0], &oldPopulation[bestOld],
 				sizeof(oldPopulation[bestOld]));
 	}
 }
@@ -621,15 +640,10 @@ int checkHasLearned(struct individual *individual) {
 		for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
 			score = 0;
 			for (int k = 0; k < RULE_LENGTH-1; k++) {
-					//if (individual->gene[j] != '#') {
 						if ((individual->gene[j].lowerBound <= trainingData[i].input[k]) &&
 								(individual->gene[j].upperBound >= trainingData[i].input[k])) {
 							++score;
 						}
-					//}
-					//else{
-					//	++score;
-					//}
 				++j;
 			}
 
@@ -637,9 +651,6 @@ int checkHasLearned(struct individual *individual) {
 				if (individual->gene[j].output == trainingData[i].output) {
 					yays++;
 					break;
-				} else {
-					//i = TRAINING_ROWS;
-					//break;
 				}
 			}
 		}
