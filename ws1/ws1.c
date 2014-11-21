@@ -111,6 +111,8 @@ int main(void) {
 
 		end = clock();
 		timeSpent = (double)(end - begin)/CLOCKS_PER_SEC;
+		
+		++gen;
 
 		move(100, 100);
 		mvaddstr(++y, x, "Generation: ");
@@ -121,6 +123,31 @@ int main(void) {
 		printw("%f    ", timeSpent);
 		mvaddstr(++y, x, "Test: ");
 		printw("%d    ", checkHasLearned(&population[bestInPopulation]));
+		mvaddstr(++y, x, "gMP: ");
+		printw("%f    ", gMP);
+		mvaddstr(++y, x, "gCP: ");
+		printw("%f    ", gCP);
+		mvaddstr(++y, x, "MT_PROB: ");
+		printw("%f    ", MT_PROB);
+		mvaddstr(++y, x, "CV_PROB: ");
+		printw("%f    ", CV_PROB);
+
+        
+        if(gCP > gMP){
+            MT_PROB -= 0.001;
+            CV_PROB += 0.001;
+        } else {
+            MT_PROB += 0.001;
+            CV_PROB -= 0.001;
+        }
+        
+        if(CV_PROB < 0.001){
+            CV_PROB = 0.001;
+        }
+        if(MT_PROB < 0.001){
+            MT_PROB = 0.001;
+        }          
+        
 
 		if(population[bestInPopulation].fitness == TRAINING_ROWS){
 			break;
@@ -232,6 +259,7 @@ struct childPair crossover(struct individual parent1, struct individual parent2)
 	int i = 0;
 
 	if (probability(0, CV_PROB)) {
+	    children.happened = 1;
 		for (i = 0; i < splitPoint; ++i) {
 			children.child[0].gene[i] = parent1.gene[i];
 			children.child[1].gene[i] = parent2.gene[i];
@@ -241,10 +269,11 @@ struct childPair crossover(struct individual parent1, struct individual parent2)
 			children.child[0].gene[i] = parent2.gene[i];
 			children.child[1].gene[i] = parent1.gene[i];
 		}
-
+        children.happened = 1;
 	} else {
 		children.child[0] = parent1;
 		children.child[1] = parent2;
+		children.happened = 0;
 	}
 
 
@@ -286,6 +315,14 @@ void createNewPopulation(struct individual *oldPopulation,
 			exit(-1);
 		}
 	}
+	gCP = 0;
+	gMP = 0;
+	for (int i = 0; i < NUM_THREADS; ++i) {
+	    gCP += data[i].CP;
+	    gMP += data[i].MP;
+	}
+	gCP = (1.0/(double)data[i].numCv)*gCP;
+	gMP = (1.0/(double)data[i].numMt)*gMP;
 
 }
 
@@ -295,10 +332,16 @@ void *runThread(void *threadArgs) {
 	struct threadData *data;
 	struct individual *oldPopulation;
 	struct individual *newPopulation;
+    int p1_cv, p2_cv, c1_cv, c2_cv, c1_mt, c2_mt = 0;
 
 	data = (struct threadData *) threadArgs;
 	oldPopulation = data->oldPopulation;
 	newPopulation = data->newPopulation;
+	data->CP = 0;
+	data->MP = 0;
+	data->numMt = 0;
+	data->numCv = 0;
+		
 
 	for (i = data->startIndex; i < data->stopPoint; ++i) {
 		//Carry out 2 tournaments to select 2 parents for mating
@@ -306,18 +349,29 @@ void *runThread(void *threadArgs) {
 		int p2 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
 
 		temp = crossover(oldPopulation[p1], oldPopulation[p2]);
-
-		mutateIndividual(&temp.child[0]);
+	    data->numCv += temp.happened;
+        c1_cv = calculateFitness(&temp.child[0]);
+		data->numMt += mutateIndividual(&temp.child[0]);
+		
 		newPopulation[i] = temp.child[0];
 		newPopulation[i].fitness = calculateFitness(&newPopulation[i]);
+		c1_mt = newPopulation[i].fitness;
 
 		++i;
 
 		if (i != POPULATION_SIZE) {
-			mutateIndividual(&temp.child[1]);
+		    c2_cv = calculateFitness(&temp.child[1]);
+			data->numMt += mutateIndividual(&temp.child[1]);
 			newPopulation[i] = temp.child[1];
 			newPopulation[i].fitness = calculateFitness(&newPopulation[i]);
+			c2_mt = newPopulation[i].fitness;
+
 		}
+		p1_cv = oldPopulation[p1].fitness;
+		p2_cv = oldPopulation[p1].fitness;
+		data->CP += (c1_cv+c2_cv)-(p1_cv+p2_cv);
+		data->MP += (c1_mt+c2_mt)-(c1_cv+c2_cv);
+		
 	}
 	pthread_exit((void *) threadArgs);
 }
@@ -342,15 +396,17 @@ int tournamentSelection(struct individual *population, int tournamentSize,
 	return best;
 }
 
-void mutateIndividual(struct individual *individual) {
+int mutateIndividual(struct individual *individual) {
 	int vals[3] = { '0', '1' };
-	double fpVals[8] = {0.3, 0.2, 0.1, 0.01, 0.001, 0.0001, 0.00001, 0.000001};
 	int numVals = 8;
+	int mutations = 0;
 	for (int i = 0; i < INDIVIDUAL_LENGTH; ++i) {
 		int mutateTo = 0;
+		
 		if (probability(0, MT_PROB)) {
+		mutations++;
 		if ((i+1) % (RULE_LENGTH) != 0) {
-			if (rand()%2 == 0) {
+
 				if(rand()%2==0){
 					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound - randfrom(0,0.1));
 				} else {
@@ -363,7 +419,7 @@ void mutateIndividual(struct individual *individual) {
 				if (individual->gene[i].lowerBound > 1){
 					individual->gene[i].lowerBound = 1.000000;
 				}
-			} else {
+
 				if(rand()%2==0){
 					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound - randfrom(0,0.1));
 				} else {
@@ -375,7 +431,7 @@ void mutateIndividual(struct individual *individual) {
 				if(individual->gene[i].upperBound < 0){
 					individual->gene[i].upperBound = 0.000000;
 				}
-			}
+
 			
 			if(individual->gene[i].lowerBound > individual->gene[i].upperBound){
 			    double swap = individual->gene[i].lowerBound;
@@ -384,6 +440,7 @@ void mutateIndividual(struct individual *individual) {
 			}
 		}
 	} else {
+	mutations++;
 				mutateTo = rand()%2;
 				while(vals[mutateTo] == individual->gene[i].output){
 					mutateTo = rand()%2;
@@ -392,7 +449,7 @@ void mutateIndividual(struct individual *individual) {
 			}
 
 	}
-
+    return mutations;
 }
 
 void selectBestFromPreviousPopulation(struct individual* newPopulation,

@@ -12,20 +12,20 @@
 #include <time.h>
 
 #define GENERATIONS 100000
-#define POPULATION_SIZE 50000
+#define POPULATION_SIZE 500
 #define RULE_LENGTH 7
-#define NO_RULES 10
+#define NO_RULES 100
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
-#define TRAINING_ROWS 1950
+#define TRAINING_ROWS 2000
 #define TESTING_ROWS 2000
-#define T_SIZE 100
-#define CV_PROB 0.9 // Crossover probability
-#define MT_PROB (double)(1.0/(double)POPULATION_SIZE + 1.0/(double)INDIVIDUAL_LENGTH)/2.0 // Mutation probability
+#define T_SIZE 2
+#define D_CV_PROB 0.5//0.9 // Crossover probability
+#define D_MT_PROB 0.5//(double)(1.0/(double)POPULATION_SIZE + 1.0/(double)(INDIVIDUAL_LENGTH*2-1))/2.0 // Mutation probability
 
 #define DATA_FILE "data3.txt"
 #define OUTPUT_FILE "out.txt"
 
-#define NUM_THREADS 5
+#define NUM_THREADS 10
 
 struct chromosome{
     double lowerBound;
@@ -40,6 +40,7 @@ struct individual{
 
 struct childPair{
   struct individual child[2];
+  int happened;
 };
 
 struct ioData{
@@ -53,6 +54,10 @@ struct threadData{
     int startIndex;
     int stopPoint;
     int fitness;
+    int numCv;
+    int numMt;
+    int CP;
+    int MP;
 };
 
 long calculatePopulationFitness(
@@ -64,7 +69,7 @@ struct childPair crossover(struct individual parent1,
             struct individual parent2);
 void createNewPopulation(struct individual *oldPopulation, struct individual *newPopulation);
 int tournamentSelection(struct individual *population, int tournamentSize, int populationSize);
-void mutateIndividual(struct individual *individual);
+int mutateIndividual(struct individual *individual);
 void selectBestFromPreviousPopulation(struct individual* newPopulation, struct individual* oldPopulation);
 //int selectBestFromPopulation(struct individual* population);
 int getBestIndex(struct individual* population);
@@ -81,3 +86,9 @@ struct ioData *allData;
 struct ioData *trainingData;
 
 int tSize = T_SIZE;
+int gen = 0;
+
+double gCP = 0;
+double gMP = 0;
+double MT_PROB = D_MT_PROB;
+double CV_PROB = D_CV_PROB;
