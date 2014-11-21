@@ -94,7 +94,7 @@ int main(void) {
 				calculatePopulationFitness(population, POPULATION_SIZE) / POPULATION_SIZE);
 		fclose(f_csv);
 
-		 for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
+		 /*for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
 			x+=20;
 		 	if ((j + 1) % RULE_LENGTH != 0) {
 		 		mvprintw(y,x,"{%f,%f}",population[bestInPopulation].gene[j].lowerBound,population[bestInPopulation].gene[j].upperBound);
@@ -107,7 +107,7 @@ int main(void) {
 		 	}
 
 
-		 }
+		 }*/
 
 		end = clock();
 		timeSpent = (double)(end - begin)/CLOCKS_PER_SEC;
@@ -352,9 +352,9 @@ void mutateIndividual(struct individual *individual) {
 		if ((i+1) % (RULE_LENGTH) != 0) {
 			if (rand()%2 == 0) {
 				if(rand()%2==0){
-					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound - fpVals[rand()%numVals]);
+					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound - randfrom(0,0.1));
 				} else {
-					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound + fpVals[rand()%numVals]);
+					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound + randfrom(0,0.1));
 				}
 				if(individual->gene[i].lowerBound < 0){
 					individual->gene[i].lowerBound = 0.000000;
@@ -365,9 +365,9 @@ void mutateIndividual(struct individual *individual) {
 				}
 			} else {
 				if(rand()%2==0){
-					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound - fpVals[rand()%numVals]);
+					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound - randfrom(0,0.1));
 				} else {
-					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound + fpVals[rand()%numVals]);
+					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound + randfrom(0,0.1));
 				}
 				if (individual->gene[i].upperBound > 1){
 					individual->gene[i].upperBound = 1.000000;
@@ -375,6 +375,12 @@ void mutateIndividual(struct individual *individual) {
 				if(individual->gene[i].upperBound < 0){
 					individual->gene[i].upperBound = 0.000000;
 				}
+			}
+			
+			if(individual->gene[i].lowerBound > individual->gene[i].upperBound){
+			    double swap = individual->gene[i].lowerBound;
+			    individual->gene[i].lowerBound = individual->gene[i].upperBound;
+			    individual->gene[i].upperBound = swap;
 			}
 		}
 	} else {
@@ -411,12 +417,12 @@ int getBestIndex(struct individual* population) {
 				|| (population[i].fitness > population[best].fitness)) {
 			best = i;
 		}
-		//else if (population[i].fitness == population[best].fitness) {
-		//	int random = rand()%2;
-		//	if(random == 0){
-		//		best = i;
-		//	}
-		//}
+		else if (population[i].fitness == population[best].fitness) {
+			int random = rand()%2;
+			if(random == 0){
+				best = i;
+			}
+		}
 	}
 
 	return best;
