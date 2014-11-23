@@ -29,6 +29,8 @@ int main(void) {
 
 	fprintf(f_csv, "BEST FITNESS, MEAN,");
 
+	fclose(f_csv);
+
 	refresh();
 	//Set-up initial population
 	for (i = 0; i < POPULATION_SIZE; ++i) {
@@ -54,23 +56,30 @@ int main(void) {
 	int x = 1;
 	int y = 1;
 	int bestInPopulation = 0;
+	int worstInNewPopulation = 0;
+	int bestInNewPopulation = 0;
+	int meanPopulationFitness = 0;
+	int meanNewPopulationFitness = 0;
+	double theta = 0;
 	for (i = 0; i < GENERATIONS; ++i) {
 		int j = 0;
 		x = 1;
 		y = 1;
 
 		bestInPopulation = getBestIndex(population);
+		meanPopulationFitness = calculatePopulationFitness(population, POPULATION_SIZE) / POPULATION_SIZE;
 		numberOfMutations = 0;
 
 		refresh();
 		createNewPopulation(population, newPopulation);
 		selectBestFromPreviousPopulation(newPopulation, population);
 
-
+		f_csv = fopen("history.csv", "a");
 		fprintf(f_csv, "\n %d, %d",
 				population[bestInPopulation].fitness,
 				(int)calculatePopulationFitness(population,
 						POPULATION_SIZE) / POPULATION_SIZE);
+		fclose(f_csv);
 
 		if ((i % 100) == 0) {
 			//printf("Completed: %2.2f\%\n", ((float)i/(float)GENERATIONS)*100.0);
@@ -87,6 +96,18 @@ int main(void) {
 		printw("%f    ", MT_PROB);
 		mvaddstr(++y, x, "Number of mutations this generation: ");
 		printw("%d    ", numberOfMutations);
+		mvaddstr(++y, x, "gMP: ");
+		printw("%lf    ", gMP);
+		mvaddstr(++y, x, "gCP: ");
+		printw("%lf    ", gCP);
+		mvaddstr(++y, x, "MT_PROB: ");
+		printw("%f    ", MT_PROB);
+		mvaddstr(++y, x, "CV_PROB: ");
+		printw("%f    ", CV_PROB);
+		mvaddstr(++y, x, "Theta: ");
+		printw("%f    ", theta);
+		mvaddstr(++y, x, "meanOld: ");
+		printw("%d    ", meanPopulationFitness);
 		//printf("Generation: %d Fitness: %d\n", i, newPopulation[getBestIndex(newPopulation)].fitness);
 		//printf("Worst: %s, Generation: %d Fitness: %d\n", newPopulation[getWorstIndex(newPopulation)].gene, i, newPopulation[getWorstIndex(newPopulation)].fitness);
 
@@ -94,9 +115,40 @@ int main(void) {
 		// printw("%d",
 		// 		checkHasLearned(&newPopulation[getBestIndex(newPopulation)]));
 
-		if (population[bestInPopulation].fitness == TRAINING_ROWS) {
-			break;
+		bestInNewPopulation = getBestIndex(newPopulation);
+		worstInNewPopulation = getWorstIndex(newPopulation);
+		meanNewPopulationFitness = calculatePopulationFitness(newPopulation, POPULATION_SIZE) / POPULATION_SIZE;
+
+		if(newPopulation[bestInNewPopulation].fitness > newPopulation[worstInNewPopulation].fitness) {
+			theta = 0.01* ((double)newPopulation[bestInNewPopulation].fitness - (double)meanNewPopulationFitness)/((double)newPopulation[bestInNewPopulation].fitness - (double)newPopulation[worstInNewPopulation].fitness);
+		} else if (newPopulation[bestInNewPopulation].fitness == newPopulation[worstInNewPopulation].fitness) {
+			theta = 0.01;
 		}
+
+		if(gCP > gMP){
+				MT_PROB -= theta;
+				CV_PROB += theta;
+		} else {
+				MT_PROB += theta;
+				CV_PROB -= theta;
+		}
+
+		if(CV_PROB < 0.001){
+				CV_PROB = 0.1;
+		}
+
+		if(MT_PROB < 0.001){
+				MT_PROB = 0.1;
+		}
+
+
+		if(CV_PROB > 1.0){
+			CV_PROB = 0.8;
+		}
+		if(MT_PROB > 1.0){
+			MT_PROB = 1.0;
+		}
+
 		memcpy(population, newPopulation,
 				sizeof(struct individual) * POPULATION_SIZE);
 
@@ -224,7 +276,7 @@ int calculateFitness(struct individual *individual) {
 					break;
 				} else {
 					//i = TRAINING_ROWS;
-					--fitness;
+					//--fitness;
 					break;
 				}
 			}
@@ -242,6 +294,7 @@ void *runThread(void *threadArgs) {
 	struct threadData *data;
 	struct individual *oldPopulation;
 	struct individual *newPopulation;
+	int p1_cv = 0, p2_cv = 0, c1_cv = 0, c2_cv = 0, c1_mt = 0, c2_mt = 0;
 
 	data = (struct threadData *) threadArgs;
 	oldPopulation = data->oldPopulation;
@@ -253,18 +306,27 @@ void *runThread(void *threadArgs) {
 		int p2 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
 
 		temp = crossover(oldPopulation[p1], oldPopulation[p2]);
+		data->numCv += temp.happened;
+		c1_cv = calculateFitness(&temp.child[0]);
+		data->numMt += mutateIndividual(&temp.child[0]);
 
-		mutateIndividual(&temp.child[0]);
 		newPopulation[i] = temp.child[0];
 		newPopulation[i].fitness = calculateFitness(&newPopulation[i]);
+		c1_mt = newPopulation[i].fitness;
 
 		++i;
 
 		if (i != POPULATION_SIZE) {
-			mutateIndividual(&temp.child[1]);
+			c2_cv = calculateFitness(&temp.child[1]);
+			data->numMt += mutateIndividual(&temp.child[1]);
 			newPopulation[i] = temp.child[1];
 			newPopulation[i].fitness = calculateFitness(&newPopulation[i]);
+			c2_mt = newPopulation[i].fitness;
 		}
+		p1_cv = oldPopulation[p1].fitness;
+		p2_cv = oldPopulation[p2].fitness;
+		data->CP += (c1_cv+c2_cv)-(p1_cv+p2_cv);
+		data->MP += (c1_mt+c2_mt)-(c1_cv+c2_cv);
 	}
 	pthread_exit((void *) threadArgs);
 }
@@ -275,6 +337,7 @@ struct childPair crossover(struct individual parent1, struct individual parent2)
 	int i = 0;
 
 	if (probability(0, CV_PROB)) {
+		children.happened = 0;
 		for (i = 0; i < splitPoint; ++i) {
 			children.child[0].gene[i] = parent1.gene[i];
 			children.child[1].gene[i] = parent2.gene[i];
@@ -283,9 +346,11 @@ struct childPair crossover(struct individual parent1, struct individual parent2)
 		for (i = splitPoint; i < INDIVIDUAL_LENGTH; ++i) {
 			children.child[0].gene[i] = parent2.gene[i];
 			children.child[1].gene[i] = parent1.gene[i];
+			children.happened++;
 		}
 
 	} else {
+		children.happened = 0;
 		children.child[0] = parent1;
 		children.child[1] = parent2;
 	}
@@ -307,6 +372,8 @@ void createNewPopulation(struct individual *oldPopulation,
 	struct threadData data[NUM_THREADS];
 	pthread_t threads[NUM_THREADS];
 	pthread_attr_t attr;
+	int numCv;
+	int numMt;
 
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
@@ -316,6 +383,10 @@ void createNewPopulation(struct individual *oldPopulation,
 		data[i].newPopulation = newPopulation;
 		data[i].startIndex = split * i;
 		data[i].stopPoint = data[i].startIndex + split;
+		data[i].CP = 0;
+		data[i].MP = 0;
+		data[i].numMt = 0;
+		data[i].numCv = 0;
 		rc = pthread_create(&threads[i], &attr, runThread, (void *) &data[i]);
 		if (rc) {
 			printf("ERROR; return code from pthread_create() is %d\n", rc);
@@ -332,6 +403,19 @@ void createNewPopulation(struct individual *oldPopulation,
 			exit(-1);
 		}
 	}
+	gCP = 0;
+	gMP = 0;
+	numCv = 0;
+	numMt = 0;
+	for (int i = 0; i < NUM_THREADS; ++i) {
+			gCP += data[i].CP;
+			gMP += data[i].MP;
+			numCv += data[i].numCv;
+			numMt += data[i].numMt;
+	}
+
+	gCP = (1.0/(double)numCv)*(double)gCP;
+	gMP = (1.0/(double)numMt)*(double)gMP;
 
 }
 
@@ -373,11 +457,13 @@ int tournamentSelection(struct individual *population, int tournamentSize,
 	return best;
 }
 
-void mutateIndividual(struct individual *individual) {
+int mutateIndividual(struct individual *individual) {
 	int vals[3] = { '0', '1', '#' };
+	int mutations = 0;
 	for (int i = 0; i < INDIVIDUAL_LENGTH; ++i) {
 		int mutateTo = 0;
 		if (probability(0, MT_PROB)) {
+			mutations++;
 			numberOfMutations++;
 			if ((i + 1) % (RULE_LENGTH) != 0) {
 				mutateTo = rand() % 3;
@@ -386,6 +472,7 @@ void mutateIndividual(struct individual *individual) {
 				}
 				individual->gene[i] = vals[mutateTo];
 			} else {
+				mutations++;
 				mutateTo = rand() % 2;
 				while (vals[mutateTo] == individual->gene[i]) {
 					mutateTo = rand() % 2;
@@ -394,7 +481,7 @@ void mutateIndividual(struct individual *individual) {
 			}
 		}
 	}
-
+	return mutations;
 }
 
 void selectBestFromPreviousPopulation(struct individual* newPopulation,
