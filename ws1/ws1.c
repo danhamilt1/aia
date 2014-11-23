@@ -149,6 +149,10 @@ int main(void) {
 			MT_PROB = 1.0;
 		}
 
+		if(population[bestInPopulation].fitness == TRAINING_ROWS){
+			break;
+		}
+
 		memcpy(population, newPopulation,
 				sizeof(struct individual) * POPULATION_SIZE);
 
@@ -160,18 +164,18 @@ int main(void) {
 
 	mvaddstr(++y, x, "Found Fittest Individual!");
 	y += 2;
-	mvaddstr(y, x, newPopulation[getBestIndex(newPopulation)].gene);
+	mvaddstr(y, x, population[bestInPopulation].gene);
 	y += 2;
 	mvaddstr(y, x, "Fitness: ");
-	printw("%d", newPopulation[getBestIndex(newPopulation)].fitness);
+	printw("%d", population[bestInPopulation].fitness);
 
 	mvaddstr(++y, x, "Test: ");
-	printw("%d", checkHasLearned(&newPopulation[getBestIndex(newPopulation)]));
+	printw("%d", checkHasLearned(&population[bestInPopulation]));
 
 	out = fopen(OUTPUT_FILE, "w");
 
 	fprintf(out, "Test matches: %d",
-			checkHasLearned(&newPopulation[getBestIndex(newPopulation)]));
+			checkHasLearned(&population[bestInPopulation]));
 
 	fclose(out);
 	fclose(f_csv);
