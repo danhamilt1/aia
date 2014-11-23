@@ -116,10 +116,10 @@ int main(void) {
 	mvaddstr(++y, x, "Test: ");
 	printw("%d", checkHasLearned(&newPopulation[getBestIndex(newPopulation)]));
 
-	out = fopen(OUTPUT_FILE, "w");
+	out = fopen(OUTPUT_FILE, "a");
 
-	fprintf(out, "Test matches: %d",
-			checkHasLearned(&newPopulation[getBestIndex(newPopulation)]));
+	fprintf(out, "\nTest matches: %d Generations: %d",
+			checkHasLearned(&newPopulation[getBestIndex(newPopulation)]), i);
 
 	fclose(out);
 	fclose(f_csv);
@@ -130,7 +130,7 @@ int main(void) {
 	free(newPopulation);
 
 	mvaddstr(++y, x, "Press any key to exit");
-	getch();
+	//getch();
 
 	delwin(mainwin);
 	endwin();
@@ -223,8 +223,6 @@ int calculateFitness(struct individual *individual) {
 					++fitness;
 					break;
 				} else {
-					//i = TRAINING_ROWS;
-					--fitness;
 					break;
 				}
 			}
@@ -260,7 +258,7 @@ void *runThread(void *threadArgs) {
 
 		++i;
 
-		if (i != POPULATION_SIZE) {
+		if (i != data->stopPoint) {
 			mutateIndividual(&temp.child[1]);
 			newPopulation[i] = temp.child[1];
 			newPopulation[i].fitness = calculateFitness(&newPopulation[i]);
