@@ -27,7 +27,7 @@ int main(void) {
 
 	f_csv = fopen("history.csv", "w");
 
-	fprintf(f_csv, "BEST FITNESS, MEAN,");
+	fprintf(f_csv, "BEST FITNESS, MEAN, TEST");
 
 	fclose(f_csv);
 
@@ -75,10 +75,11 @@ int main(void) {
 		selectBestFromPreviousPopulation(newPopulation, population);
 
 		f_csv = fopen("history.csv", "a");
-		fprintf(f_csv, "\n %d, %d",
+		fprintf(f_csv, "\n %d, %d, %d",
 				population[bestInPopulation].fitness,
 				(int)calculatePopulationFitness(population,
-						POPULATION_SIZE) / POPULATION_SIZE);
+						POPULATION_SIZE) / POPULATION_SIZE,
+						checkHasLearned(&population[bestInPopulation]));
 		fclose(f_csv);
 
 		if ((i % 100) == 0) {
@@ -134,20 +135,26 @@ int main(void) {
 		}
 
 		if(CV_PROB < 0.001){
-				CV_PROB = 0.1;
+				CV_PROB = 0.001;
 		}
 
 		if(MT_PROB < 0.001){
-				MT_PROB = 0.1;
+				MT_PROB = 0.01;
 		}
 
 
 		if(CV_PROB > 1.0){
-			CV_PROB = 0.8;
+			CV_PROB = 1.0;
 		}
 		if(MT_PROB > 1.0){
 			MT_PROB = 1.0;
 		}
+
+		// if(MT_PROB < 0.00001){
+		// 	MT_PROB = 0.1;
+		// }
+		//
+		// MT_PROB -= 0.005;
 
 		if(population[bestInPopulation].fitness == TRAINING_ROWS){
 			break;
@@ -178,7 +185,6 @@ int main(void) {
 			checkHasLearned(&population[bestInPopulation]));
 
 	fclose(out);
-	fclose(f_csv);
 
 	free(trainingData);
 	free(allData);
@@ -280,7 +286,6 @@ int calculateFitness(struct individual *individual) {
 					break;
 				} else {
 					//i = TRAINING_ROWS;
-					//--fitness;
 					break;
 				}
 			}
@@ -320,7 +325,7 @@ void *runThread(void *threadArgs) {
 
 		++i;
 
-		if (i != POPULATION_SIZE) {
+		if (i != data->stopPoint) {
 			c2_cv = calculateFitness(&temp.child[1]);
 			data->numMt += mutateIndividual(&temp.child[1]);
 			newPopulation[i] = temp.child[1];
@@ -330,38 +335,81 @@ void *runThread(void *threadArgs) {
 		p1_cv = oldPopulation[p1].fitness;
 		p2_cv = oldPopulation[p2].fitness;
 		data->CP += (c1_cv+c2_cv)-(p1_cv+p2_cv);
-		data->MP += (c1_mt+c2_mt)-(c1_cv+c2_cv);
+		data->MP += (c1_mt+c2_mt)-(p1_cv+p2_cv);
 	}
 	pthread_exit((void *) threadArgs);
 }
 
+// struct childPair crossover(struct individual parent1, struct individual parent2) {
+// 	struct childPair children;
+// 	int splitPoint = rand() % INDIVIDUAL_LENGTH;
+// 	int i = 0;
+//
+// 	if (probability(0, CV_PROB)) {
+// 		children.happened = 0;
+// 		for (i = 0; i < splitPoint; ++i) {
+// 			children.child[0].gene[i] = parent1.gene[i];
+// 			children.child[1].gene[i] = parent2.gene[i];
+// 		}
+//
+// 		for (i = splitPoint; i < INDIVIDUAL_LENGTH; ++i) {
+// 			children.child[0].gene[i] = parent2.gene[i];
+// 			children.child[1].gene[i] = parent1.gene[i];
+// 			children.happened++;
+// 		}
+//
+// 	} else {
+// 		children.happened = 0;
+// 		children.child[0] = parent1;
+// 		children.child[1] = parent2;
+// 	}
+// 	children.child[0].gene[INDIVIDUAL_LENGTH] = '\0';
+// 	children.child[1].gene[INDIVIDUAL_LENGTH] = '\0';
+// 	//children.child[0].fitness = calculateFitness(children.child[0]);
+// 	//children.child[1].fitness = calculateFitness(children.child[1]);
+//
+// 	return children;
+//
+// }
+
 struct childPair crossover(struct individual parent1, struct individual parent2) {
 	struct childPair children;
-	int splitPoint = rand() % INDIVIDUAL_LENGTH;
+	int splitPoint = (rand() % NO_RULES) * RULE_LENGTH;
+	int splitPoint2 = (rand() % NO_RULES) * RULE_LENGTH;
 	int i = 0;
+	int j = 0;
 
 	if (probability(0, CV_PROB)) {
-		children.happened = 0;
+		children.happened=2;
 		for (i = 0; i < splitPoint; ++i) {
 			children.child[0].gene[i] = parent1.gene[i];
-			children.child[1].gene[i] = parent2.gene[i];
+		}
+		for (i = splitPoint; i < splitPoint + RULE_LENGTH; ++i) {
+			children.child[0].gene[i] = parent2.gene[i];
+
+		}
+		for (i = splitPoint + RULE_LENGTH; i < INDIVIDUAL_LENGTH; ++i) {
+			children.child[0].gene[i] = parent1.gene[i];
 		}
 
-		for (i = splitPoint; i < INDIVIDUAL_LENGTH; ++i) {
-			children.child[0].gene[i] = parent2.gene[i];
-			children.child[1].gene[i] = parent1.gene[i];
-			children.happened++;
+		for (j = 0; j < splitPoint2; ++j) {
+			children.child[1].gene[j] = parent2.gene[j];
+		}
+		for(j = splitPoint2; j < splitPoint2 + RULE_LENGTH; ++j){
+			children.child[1].gene[j] = parent1.gene[j];
+			//children.happened++;
+		}
+		for(j = splitPoint2 + RULE_LENGTH; j < INDIVIDUAL_LENGTH; ++j){
+			children.child[1].gene[j] = parent2.gene[j];
 		}
 
 	} else {
-		children.happened = 0;
+		children.happened=2;
 		children.child[0] = parent1;
 		children.child[1] = parent2;
+		//children.happened = 0;
 	}
-	children.child[0].gene[INDIVIDUAL_LENGTH] = '\0';
-	children.child[1].gene[INDIVIDUAL_LENGTH] = '\0';
-	//children.child[0].fitness = calculateFitness(children.child[0]);
-	//children.child[1].fitness = calculateFitness(children.child[1]);
+
 
 	return children;
 
@@ -464,6 +512,7 @@ int tournamentSelection(struct individual *population, int tournamentSize,
 int mutateIndividual(struct individual *individual) {
 	int vals[3] = { '0', '1', '#' };
 	int mutations = 0;
+
 	for (int i = 0; i < INDIVIDUAL_LENGTH; ++i) {
 		int mutateTo = 0;
 		if (probability(0, MT_PROB)) {
@@ -476,7 +525,6 @@ int mutateIndividual(struct individual *individual) {
 				}
 				individual->gene[i] = vals[mutateTo];
 			} else {
-				mutations++;
 				mutateTo = rand() % 2;
 				while (vals[mutateTo] == individual->gene[i]) {
 					mutateTo = rand() % 2;
@@ -507,16 +555,17 @@ int getBestIndex(struct individual* population) {
 
 	for (i = 0; i < POPULATION_SIZE; ++i) {
 		if ((best == -1)
-				|| (population[i].fitness > population[best].fitness)) {
+				|| (population[i].fitness >= population[best].fitness)) {
 			best = i;
-		} else if (population[i].fitness == population[best].fitness) {
+		}
+		else if (population[i].fitness == population[best].fitness) {
 			int random = rand() % 2;
 			if (random == 0) {
 				best = i;
 			} else {
 				best = best;
 			}
-		}
+		 }
 	}
 
 	return best;
@@ -530,6 +579,14 @@ int getWorstIndex(struct individual* population) {
 		if ((worst == -1)
 				|| (population[i].fitness <= population[worst].fitness)) {
 			worst = i;
+		}
+		else if (population[i].fitness == population[worst].fitness) {
+			int random = rand() % 2;
+			if (random == 0) {
+				worst = i;
+			} else {
+				worst = worst;
+			}
 		}
 	}
 
