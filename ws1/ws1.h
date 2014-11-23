@@ -10,13 +10,13 @@
 #include <pthread.h>
 
 #define GENERATIONS 20000
-#define POPULATION_SIZE 50
+#define POPULATION_SIZE 500
 #define RULE_LENGTH 12
-#define NO_RULES 10
+#define NO_RULES 9
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
 #define TRAINING_ROWS 1800
 #define TESTING_ROWS 2048
-#define T_SIZE 2
+#define T_SIZE 5
 #define CV_PROB 0.7 // Crossover probability
 #define MT_PROB (double)(1.0/(double)POPULATION_SIZE + 1.0/(double)INDIVIDUAL_LENGTH)/2 // Mutation probability
 
