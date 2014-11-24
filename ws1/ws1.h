@@ -9,7 +9,7 @@
 #include <curses.h>
 #include <pthread.h>
 
-#define GENERATIONS 20000
+#define GENERATIONS 2500
 #define POPULATION_SIZE 500
 #define RULE_LENGTH 12
 #define NO_RULES 15

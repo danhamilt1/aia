@@ -143,8 +143,8 @@ int main(void) {
 		}
 
 
-		if(CV_PROB > 1.0){
-			CV_PROB = 1.0;
+		if(CV_PROB > 0.9){
+			CV_PROB = 0.9;
 		}
 		if(MT_PROB > 1.0){
 			MT_PROB = 1.0;
@@ -179,10 +179,10 @@ int main(void) {
 	mvaddstr(++y, x, "Test: ");
 	printw("%d", checkHasLearned(&population[bestInPopulation]));
 
-	out = fopen(OUTPUT_FILE, "w");
+	out = fopen(OUTPUT_FILE, "a");
 
-	fprintf(out, "Test matches: %d",
-			checkHasLearned(&population[bestInPopulation]));
+	fprintf(out, "Test matches: %d Generations: %d\n",
+			checkHasLearned(&population[bestInPopulation]), i);
 
 	fclose(out);
 
@@ -192,7 +192,6 @@ int main(void) {
 	free(newPopulation);
 
 	mvaddstr(++y, x, "Press any key to exit");
-	getch();
 
 	delwin(mainwin);
 	endwin();
