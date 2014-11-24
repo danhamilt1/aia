@@ -181,7 +181,7 @@ int main(void) {
 
 	out = fopen(OUTPUT_FILE, "a");
 
-	fprintf(out, "Test matches: %d Generations: %d\n",
+	fprintf(out,"%d, %d\n",
 			checkHasLearned(&population[bestInPopulation]), i);
 
 	fclose(out);
