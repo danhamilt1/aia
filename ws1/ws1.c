@@ -234,39 +234,6 @@ int calculateFitness(struct individual *individual) {
 
 }
 
-void *runThread(void *threadArgs) {
-	int i = 0;
-	struct childPair temp;
-	struct threadData *data;
-	struct individual *oldPopulation;
-	struct individual *newPopulation;
-
-	data = (struct threadData *) threadArgs;
-	oldPopulation = data->oldPopulation;
-	newPopulation = data->newPopulation;
-
-	for (i = data->startIndex; i < data->stopPoint; ++i) {
-		//Carry out 2 tournaments to select 2 parents for mating
-		int p1 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
-		int p2 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
-
-		temp = crossover(oldPopulation[p1], oldPopulation[p2]);
-
-		mutateIndividual(&temp.child[0]);
-		newPopulation[i] = temp.child[0];
-		newPopulation[i].fitness = calculateFitness(&newPopulation[i]);
-
-		++i;
-
-		if (i != data->stopPoint) {
-			mutateIndividual(&temp.child[1]);
-			newPopulation[i] = temp.child[1];
-			newPopulation[i].fitness = calculateFitness(&newPopulation[i]);
-		}
-	}
-	pthread_exit((void *) threadArgs);
-}
-
 struct childPair crossover(struct individual parent1, struct individual parent2) {
 	struct childPair children;
 	int splitPoint = rand() % INDIVIDUAL_LENGTH;
@@ -298,39 +265,31 @@ struct childPair crossover(struct individual parent1, struct individual parent2)
 
 void createNewPopulation(struct individual *oldPopulation,
 		struct individual *newPopulation) {
+	struct childPair temp;
 	int i = 0;
-	int rc;
 
-	int split = POPULATION_SIZE / NUM_THREADS;
-	struct threadData data[NUM_THREADS];
-	pthread_t threads[NUM_THREADS];
-	pthread_attr_t attr;
+	for (i = 0; i < POPULATION_SIZE; ++i) {
+		refresh();
+		mvaddstr(1, 30, "Working on new population individual: ");
+		printw("%d   ",i);
+		//Carry out 2 tournaments to select 2 parents for mating
+		int p1 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
+		int p2 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
 
-	pthread_attr_init(&attr);
-	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+		temp = crossover(oldPopulation[p1], oldPopulation[p2]);
 
-	for (int i = 0; i < NUM_THREADS; ++i) {
-		data[i].oldPopulation = oldPopulation;
-		data[i].newPopulation = newPopulation;
-		data[i].startIndex = split * i;
-		data[i].stopPoint = data[i].startIndex + split;
-		rc = pthread_create(&threads[i], &attr, runThread, (void *) &data[i]);
-		if (rc) {
-			printf("ERROR; return code from pthread_create() is %d\n", rc);
-			exit(-1);
+		mutateIndividual(&temp.child[0]);
+		newPopulation[i] = temp.child[0];
+		newPopulation[i].fitness = calculateFitness(&newPopulation[i]);
+
+		++i;
+
+		if (i != POPULATION_SIZE) {
+			mutateIndividual(&temp.child[1]);
+			newPopulation[i] = temp.child[1];
+			newPopulation[i].fitness = calculateFitness(&newPopulation[i]);
 		}
 	}
-
-	pthread_attr_destroy(&attr);
-
-	for (int i = 0; i < NUM_THREADS; ++i) {
-		rc = pthread_join(threads[i], NULL);
-		if (rc) {
-			printf("ERROR; return code from pthread_create() is %d\n", rc);
-			exit(-1);
-		}
-	}
-
 }
 
 void selectFittest(struct individual *oldPopulation,
