@@ -61,7 +61,7 @@ int main(void) {
 		int x2 = 80;
 		int y2 = 1;
 
-		orderPopulation(population, POPULATION_SIZE);
+		//orderPopulation(population, POPULATION_SIZE);
 
 		bestInPopulation = getBestIndex(population);
 		numberOfMutations = 0;
@@ -239,29 +239,41 @@ int calculateFitness(struct individual *individual) {
 
 }
 
-struct childPair crossover(struct individual parent1, struct individual parent2) {
-	struct childPair children;
-	int splitPoint = rand() % INDIVIDUAL_LENGTH;
+void crossover(struct individual parent1, struct individual parent2, struct childPair *children) {
+	int splitPoint = (rand() % NO_RULES) * RULE_LENGTH;
+	int splitPoint2 = (rand() % NO_RULES) * RULE_LENGTH;
 	int i = 0;
+	int j = 0;
 
 	if (probability(0, CV_PROB)) {
 		for (i = 0; i < splitPoint; ++i) {
-			children.child[0].gene[i] = parent1.gene[i];
-			children.child[1].gene[i] = parent2.gene[i];
+			children->child[0].gene[i] = parent1.gene[i];
+		}
+		for (i = splitPoint; i < splitPoint + RULE_LENGTH; ++i) {
+			children->child[0].gene[i] = parent2.gene[i];
+
+		}
+		for (i = splitPoint + RULE_LENGTH; i < INDIVIDUAL_LENGTH; ++i) {
+			children->child[0].gene[i] = parent1.gene[i];
 		}
 
-		for (i = splitPoint; i < INDIVIDUAL_LENGTH; ++i) {
-			children.child[0].gene[i] = parent2.gene[i];
-			children.child[1].gene[i] = parent1.gene[i];
+		for (j = 0; j < splitPoint2; ++j) {
+			children->child[1].gene[j] = parent2.gene[j];
+		}
+		for(j = splitPoint2; j < splitPoint2 + RULE_LENGTH; ++j){
+			children->child[1].gene[j] = parent1.gene[j];
+		}
+		for(j = splitPoint2 + RULE_LENGTH; j < INDIVIDUAL_LENGTH; ++j){
+			children->child[1].gene[j] = parent2.gene[j];
 		}
 
 	} else {
-		children.child[0] = parent1;
-		children.child[1] = parent2;
+		children->child[0] = parent1;
+		children->child[1] = parent2;
 	}
 
-	return children;
-
+	children->child[0].gene[INDIVIDUAL_LENGTH] = '\0';
+	children->child[1].gene[INDIVIDUAL_LENGTH] = '\0';
 }
 
 void createNewPopulation(struct individual *oldPopulation,
@@ -269,26 +281,26 @@ void createNewPopulation(struct individual *oldPopulation,
 	struct childPair temp;
 	int i = 0;
 
-	for (i = 0; i < POPULATION_SIZE/2; ++i) {
+	for (i = 0; i < POPULATION_SIZE; ++i) {
 		refresh();
 		mvaddstr(1, 30, "Working on new population individual: ");
 		printw("%d   ",i);
 		//Carry out 2 tournaments to select 2 parents for mating
-		int p1 = i*2;//tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
-		int p2 = i*2-1;//tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
+		int p1 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
+		int p2 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
 
-		temp = crossover(oldPopulation[p1], oldPopulation[p2]);
+		crossover(oldPopulation[p1], oldPopulation[p2], &temp);
 
 		mutateIndividual(&temp.child[0]);
-		newPopulation[i*2-1] = temp.child[0];
-		newPopulation[i*2-1].fitness = calculateFitness(&newPopulation[i]);
+		newPopulation[p1] = temp.child[0];
+		newPopulation[p1].fitness = calculateFitness(&newPopulation[i]);
 
 		++i;
 
-		if (i != POPULATION_SIZE/2) {
+		if (i != POPULATION_SIZE) {
 			mutateIndividual(&temp.child[1]);
-			newPopulation[i*2] = temp.child[1];
-			newPopulation[i*2].fitness = calculateFitness(&newPopulation[i]);
+			newPopulation[p2] = temp.child[1];
+			newPopulation[p2].fitness = calculateFitness(&newPopulation[i]);
 		}
 	}
 }
@@ -349,7 +361,7 @@ void orderPopulation(struct individual *population, int popSize){
 }
 
 void mutateIndividual(struct individual *individual) {
-	int vals[3] = { '0', '1', '#' };
+	char vals[3] = { '0', '1', '#' };
 	for (int i = 0; i < INDIVIDUAL_LENGTH; ++i) {
 		int mutateTo = 0;
 		if (probability(0, MT_PROB)) {
