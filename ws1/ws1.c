@@ -58,6 +58,10 @@ int main(void) {
 		int j = 0;
 		x = 1;
 		y = 1;
+		int x2 = 80;
+		int y2 = 1;
+
+		orderPopulation(population, POPULATION_SIZE);
 
 		bestInPopulation = getBestIndex(population);
 		numberOfMutations = 0;
@@ -77,6 +81,7 @@ int main(void) {
 		}
 
 		printIndividual(&population[bestInPopulation], &x, &y);
+		printIndividual(&population[getWorstIndex(population)], &x2, &y2);
 
 		move(100, 100);
 		mvaddstr(++y, x, "Generation: ");
@@ -130,7 +135,7 @@ int main(void) {
 	free(newPopulation);
 
 	mvaddstr(++y, x, "Press any key to exit");
-	//getch();
+	getch();
 
 	delwin(mainwin);
 	endwin();
@@ -145,13 +150,13 @@ void printIndividual(struct individual *individual, int *xP, int *yP){
 	for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
 		if ((j + 1) % RULE_LENGTH != 0) {
 			mvaddch(y, x, individual->gene[j]);
+			x++;
 		} else {
 			mvaddch(y, ++x, '|');
 			mvaddch(y, ++x, individual->gene[j]);
 			y++;
-			x = 0;
+			x = *xP;
 		}
-		x++;
 
 	}
 
@@ -254,10 +259,6 @@ struct childPair crossover(struct individual parent1, struct individual parent2)
 		children.child[0] = parent1;
 		children.child[1] = parent2;
 	}
-	children.child[0].gene[INDIVIDUAL_LENGTH] = '\0';
-	children.child[1].gene[INDIVIDUAL_LENGTH] = '\0';
-	//children.child[0].fitness = calculateFitness(children.child[0]);
-	//children.child[1].fitness = calculateFitness(children.child[1]);
 
 	return children;
 
@@ -268,26 +269,26 @@ void createNewPopulation(struct individual *oldPopulation,
 	struct childPair temp;
 	int i = 0;
 
-	for (i = 0; i < POPULATION_SIZE; ++i) {
+	for (i = 0; i < POPULATION_SIZE/2; ++i) {
 		refresh();
 		mvaddstr(1, 30, "Working on new population individual: ");
 		printw("%d   ",i);
 		//Carry out 2 tournaments to select 2 parents for mating
-		int p1 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
-		int p2 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
+		int p1 = i*2;//tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
+		int p2 = i*2-1;//tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
 
 		temp = crossover(oldPopulation[p1], oldPopulation[p2]);
 
 		mutateIndividual(&temp.child[0]);
-		newPopulation[i] = temp.child[0];
-		newPopulation[i].fitness = calculateFitness(&newPopulation[i]);
+		newPopulation[i*2-1] = temp.child[0];
+		newPopulation[i*2-1].fitness = calculateFitness(&newPopulation[i]);
 
 		++i;
 
-		if (i != POPULATION_SIZE) {
+		if (i != POPULATION_SIZE/2) {
 			mutateIndividual(&temp.child[1]);
-			newPopulation[i] = temp.child[1];
-			newPopulation[i].fitness = calculateFitness(&newPopulation[i]);
+			newPopulation[i*2] = temp.child[1];
+			newPopulation[i*2].fitness = calculateFitness(&newPopulation[i]);
 		}
 	}
 }
@@ -328,6 +329,23 @@ int tournamentSelection(struct individual *population, int tournamentSize,
 
 	//printf("Best from tournament: %d Fitness: %d\n", best, population[best].fitness);
 	return best;
+}
+
+void orderPopulation(struct individual *population, int popSize){
+
+	for(int i = 0; i < popSize; ++i){
+		int bestIndex = NULL;
+		for(int j = i; j < popSize; ++j){
+			if((bestIndex == NULL) || population[j].fitness > population[bestIndex].fitness){
+				bestIndex = j;
+			}
+		}
+		struct individual temp = population[bestIndex];
+		for(int k = bestIndex; k > i; --k){
+			population[k] = population[k-1];
+		}
+		population[i] = temp;
+	}
 }
 
 void mutateIndividual(struct individual *individual) {
@@ -375,14 +393,15 @@ int getBestIndex(struct individual* population) {
 		if ((best == -1)
 				|| (population[i].fitness > population[best].fitness)) {
 			best = i;
-		} else if (population[i].fitness == population[best].fitness) {
-			int random = rand() % 2;
-			if (random == 0) {
-				best = i;
-			} else {
-				best = best;
-			}
 		}
+		// else if (population[i].fitness == population[best].fitness) {
+		// 	int random = rand() % 2;
+		// 	if (random == 0) {
+		// 		best = i;
+		// 	} else {
+		// 		best = best;
+		// 	}
+		// }
 	}
 
 	return best;

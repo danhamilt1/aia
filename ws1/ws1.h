@@ -9,8 +9,8 @@
 #include <curses.h>
 #include <pthread.h>
 
-#define GENERATIONS 2000
-#define POPULATION_SIZE 500
+#define GENERATIONS 20000
+#define POPULATION_SIZE 50
 #define RULE_LENGTH 12
 #define NO_RULES 15
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
@@ -18,7 +18,7 @@
 #define TESTING_ROWS 2048
 #define T_SIZE 2
 #define CV_PROB 0.7 // Crossover probability
-#define MT_PROB (double)(1.0/(double)POPULATION_SIZE + 1.0/(double)INDIVIDUAL_LENGTH)/2 // Mutation probability
+#define MT_PROB 0.1//(double)(1.0/(double)POPULATION_SIZE + 1.0/(double)INDIVIDUAL_LENGTH)/2 // Mutation probability
 
 #define DATA_FILE "data2.txt"
 #define OUTPUT_FILE "out.txt"
@@ -59,7 +59,7 @@ void selectFittest(struct individual *oldPopulation, struct individual *newPopul
 int tournamentSelection(struct individual *population, int tournamentSize, int populationSize);
 void mutateIndividual(struct individual *individual);
 void selectBestFromPreviousPopulation(struct individual* newPopulation, struct individual* oldPopulation);
-//int selectBestFromPopulation(struct individual* population);
+void orderPopulation(struct individual *population, int popSize);
 int getBestIndex(struct individual* population);
 int getWorstIndex(struct individual* population);
 void readInData();
