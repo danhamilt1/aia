@@ -79,12 +79,14 @@ int main(void) {
 	int meanPopulationFitness = 0;
 	int meanNewPopulationFitness = 0;
 	double theta = 0;
+	int bestSoFar = 0;
 	for (i = 0; i < GENERATIONS; ++i) {
 		int j = 0;
 		time_t begin, end = 0;
 		double timeSpent = 0;
 		begin = clock();
 		bestInPopulation = getBestIndex(population);
+		bestSoFar = population[bestInPopulation].fitness;
 		meanPopulationFitness = calculatePopulationFitness(population, POPULATION_SIZE) / POPULATION_SIZE;
 
 		x = 1;
@@ -195,7 +197,51 @@ int main(void) {
 					MT_PROB = 0.3;
 				}
 
-				MT_PROB -= 0.005;
+				//MT_PROB -= 0.005;
+
+				if(newPopulation[getBestIndex(newPopulation)].fitness <= bestSoFar){
+					struct individual new = newPopulation[getBestIndex(newPopulation)];
+					struct individual old = population[bestInPopulation];
+					struct childPair temp;
+					bool better = false;
+					double oldMt = MT_PROB;
+					double oldCv = CV_PROB;
+					int escape = 0;
+					MT_PROB = 0.01;
+					CV_PROB = 0.8;
+					while((!better)){
+						temp = crossover(new, old);
+
+						mutateIndividual(&temp.child[0]);
+						mutateIndividual(&temp.child[1]);
+						temp.child[0].fitness = calculateFitness(&temp.child[0]);
+						temp.child[1].fitness = calculateFitness(&temp.child[1]);
+
+						if(temp.child[0].fitness > newPopulation[getBestIndex(newPopulation)].fitness){
+							newPopulation[getBestIndex(newPopulation)] = temp.child[0];
+							better = true;
+							for(int l = 0; l < 10; ++l){
+								newPopulation[rand()%POPULATION_SIZE] = temp.child[0];
+							}
+						}
+
+						if(temp.child[1].fitness > newPopulation[getBestIndex(newPopulation)].fitness){
+							newPopulation[getBestIndex(newPopulation)] = temp.child[1];
+							better = true;
+							for(int l = 0; l < 10; ++l){
+								newPopulation[rand()%POPULATION_SIZE] = temp.child[1];
+							}
+						}
+
+						new = temp.child[0];
+						//++escape;
+						//old = temp.child[1];
+
+					}
+					MT_PROB = oldMt;
+					CV_PROB = oldCv;
+
+				}
 
 
 		if(population[bestInPopulation].fitness == TRAINING_ROWS){
