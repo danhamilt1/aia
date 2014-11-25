@@ -18,9 +18,9 @@
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
 #define TRAINING_ROWS 1500
 #define TESTING_ROWS 2000
-#define T_SIZE 2
-#define D_CV_PROB 0.8 // Crossover probability
-#define D_MT_PROB 0.1//(double)((1.0/(double)POPULATION_SIZE)*((double)1.0/(double)INDIVIDUAL_LENGTH))/2// Mutation probability
+#define T_SIZE 5
+#define D_CV_PROB 0.5 // Crossover probability
+#define D_MT_PROB 0.5//(double)((1.0/(double)POPULATION_SIZE)*((double)1.0/(double)INDIVIDUAL_LENGTH))/2// Mutation probability
 #define MT_MIN 0.1//(double)((1.0/(double)POPULATION_SIZE)+(1.0/(double)INDIVIDUAL_LENGTH))/2
 
 #define DATA_FILE "data3.txt"

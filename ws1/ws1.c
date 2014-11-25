@@ -160,45 +160,45 @@ int main(void) {
 		mvaddstr(++y, x, "meanNew: ");
 		printw("%d    ", meanNewPopulationFitness);
 
-		// if(newPopulation[bestInNewPopulation].fitness > newPopulation[worstInNewPopulation].fitness) {
-		// 	theta = 0.01* ((double)newPopulation[bestInNewPopulation].fitness - (double)meanNewPopulationFitness)/((double)newPopulation[bestInNewPopulation].fitness - (double)newPopulation[worstInNewPopulation].fitness);
-		// } else if (newPopulation[bestInNewPopulation].fitness == newPopulation[worstInNewPopulation].fitness) {
-		// 	theta = 0.01;
-		// }
-		///
-		//theta = 0.01;
-		///
+		if(newPopulation[bestInNewPopulation].fitness > newPopulation[worstInNewPopulation].fitness) {
+			theta = 0.01* ((double)newPopulation[bestInNewPopulation].fitness - (double)meanNewPopulationFitness)/((double)newPopulation[bestInNewPopulation].fitness - (double)newPopulation[worstInNewPopulation].fitness);
+		} else if (newPopulation[bestInNewPopulation].fitness == newPopulation[worstInNewPopulation].fitness) {
+			theta = 0.01;
+		}
 
-        // if(gCP > gMP){
-        //     MT_PROB -= theta;
-        //     CV_PROB += theta;
-        // } else {
-        //     MT_PROB += theta;
-        //     CV_PROB -= theta;
-        // }
-				//
-        // if(CV_PROB < 0.001){
-        //     CV_PROB = 0.1;
-        // }
-				//
-				// if(MT_PROB < 0.001){
-				// 		MT_PROB = 0.3;
-				// }
-				//
-				//
-				// if(CV_PROB > 1.0){
-				// 	CV_PROB = 0.8;
-				// }
-				// if(MT_PROB > 1.0){
-				// 	MT_PROB = 1.0;
-				// }
+		//theta = 0.01;
+
+
+        if(gCP > gMP){
+            MT_PROB -= theta;
+            CV_PROB += theta;
+        } else {
+            MT_PROB += theta;
+            CV_PROB -= theta;
+        }
+
+        if(CV_PROB < 0.001){
+            CV_PROB = 0.1;
+        }
 
 				if(MT_PROB < 0.001){
-					MT_PROB = 0.3;
+						MT_PROB = 0.3;
 				}
 
-				//MT_PROB -= 0.005;
 
+				if(CV_PROB > 1.0){
+					CV_PROB = 0.8;
+				}
+				if(MT_PROB > 1.0){
+					MT_PROB = 1.0;
+				}
+
+				// if(MT_PROB < 0.001){
+				// 	MT_PROB = 0.3;
+				// }
+				//
+				// MT_PROB -= 0.005;
+/*
 				if(newPopulation[getBestIndex(newPopulation)].fitness <= bestSoFar){
 					struct individual new = newPopulation[getBestIndex(newPopulation)];
 					struct individual old = population[bestInPopulation];
@@ -242,7 +242,7 @@ int main(void) {
 					CV_PROB = oldCv;
 
 				}
-
+*/
 
 		if(population[bestInPopulation].fitness == TRAINING_ROWS){
 			//break;
