@@ -94,7 +94,7 @@ int main(void) {
 				calculatePopulationFitness(population, POPULATION_SIZE) / POPULATION_SIZE);
 		fclose(f_csv);
 
-		 /*for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
+		 for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
 			x+=20;
 		 	if ((j + 1) % RULE_LENGTH != 0) {
 		 		mvprintw(y,x,"{%f,%f}",population[bestInPopulation].gene[j].lowerBound,population[bestInPopulation].gene[j].upperBound);
@@ -107,7 +107,7 @@ int main(void) {
 		 	}
 
 
-		 }*/
+		 }
 
 		end = clock();
 		timeSpent = (double)(end - begin)/CLOCKS_PER_SEC;
@@ -258,12 +258,9 @@ void createNewPopulation(struct individual *oldPopulation,
 	int i = 0;
 
 	for (i = 0; i < POPULATION_SIZE; ++i) {
-		refresh();
-		mvaddstr(1, 30, "Working on new population individual: ");
-		printw("%d   ",i);
 		//Carry out 2 tournaments to select 2 parents for mating
-		int p1 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
-		int p2 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
+		int p1 = rouletteSelection(oldPopulation, POPULATION_SIZE);
+		int p2 = rouletteSelection(oldPopulation, POPULATION_SIZE);
 
 		temp = crossover(oldPopulation[p1], oldPopulation[p2]);
 
@@ -299,6 +296,22 @@ int tournamentSelection(struct individual *population, int tournamentSize,
 
 	//printf("Best from tournament: %d Fitness: %d\n", best, population[best].fitness);
 	return best;
+}
+
+int rouletteSelection(struct individual *population, int populationSize) {
+	int totalFitness = calculatePopulationFitness(population, POPULATION_SIZE);
+	int selectedIndividual = 0;
+	int random = rand()%totalFitness;
+	int rollingTotal = 0;
+	int i = 0;
+
+	do{
+		rollingTotal += population[i].fitness;
+		selectedIndividual = i;
+		++i;
+	}while(rollingTotal < random);
+
+	return selectedIndividual;
 }
 
 void mutateIndividual(struct individual *individual) {
