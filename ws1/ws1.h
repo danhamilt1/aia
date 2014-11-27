@@ -13,7 +13,7 @@
 #define GENERATIONS 10000
 #define POPULATION_SIZE 100
 #define RULE_LENGTH 7
-#define NO_RULES 6
+#define NO_RULES 15
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
 #define TRAINING_ROWS 1500
 #define TESTING_ROWS 2000
@@ -63,9 +63,9 @@ struct childPair crossover(struct individual parent1,
             struct individual parent2);
 void createNewPopulation(struct individual *oldPopulation, struct individual *newPopulation);
 int tournamentSelection(struct individual *population, int tournamentSize, int populationSize);
+int rouletteSelection(struct individual *population, int populationSize);
 void mutateIndividual(struct individual *individual);
 void selectBestFromPreviousPopulation(struct individual* newPopulation, struct individual* oldPopulation);
-//int selectBestFromPopulation(struct individual* population);
 int getBestIndex(struct individual* population);
 int getWorstIndex(struct individual* population);
 void readInData();
