@@ -526,14 +526,14 @@ int checkHasLearned(struct individual *individual) {
 	int score = 0;
 	int yays = 0;
 
-	for (i = 0; i < TRAINING_ROWS; ++i) {
+	for (i = 0; i < TESTING_ROWS; ++i) {
 		int k = 0;
 		for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
 			score = 0;
 			for (int k = 0; k < RULE_LENGTH-1; k++) {
 					//if (individual->gene[j] != '#') {
-						if ((individual->gene[j].lowerBound < trainingData[i].input[k]) &&
-								(individual->gene[j].upperBound > trainingData[i].input[k])) {
+						if ((individual->gene[j].lowerBound <= allData[i].input[k]) &&
+								(individual->gene[j].upperBound >= allData[i].input[k])) {
 							++score;
 						}
 					//}
@@ -544,12 +544,12 @@ int checkHasLearned(struct individual *individual) {
 			}
 
 			if (score == RULE_LENGTH-1) {
-				if (individual->gene[j].output == trainingData[i].output) {
+				if (individual->gene[j].output == allData[i].output) {
 					yays++;
 					break;
 				} else {
 					//i = TRAINING_ROWS;
-					//break;
+					break;
 				}
 			}
 		}
