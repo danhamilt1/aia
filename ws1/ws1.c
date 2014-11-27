@@ -38,8 +38,8 @@ int main(void) {
 		char vals[3] = { '0', '1' };
 		for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
 			if ((j + 1) % RULE_LENGTH != 0) {
-				population[i].gene[j].lowerBound = fabs(randfrom(0,1));
-				population[i].gene[j].upperBound = fabs(randfrom(population[i].gene[j].lowerBound,1));
+				population[i].gene[j].lowerBound = randfrom(0,1);
+				population[i].gene[j].upperBound = randfrom(population[i].gene[j].lowerBound,1);
 
 			} else {
 				population[i].gene[j].output = vals[rand() % 2];
@@ -460,13 +460,11 @@ void selectTrainingData(){
 						hasNumber = true;
 						break;
 					}
-					//printf("%d\n",j);
 			}
 
 		}while(hasNumber == true);
 
 		selected[i] = randomIndex;
-		//printf("%d\n", i);
 	  trainingData[i] = allData[selected[i]];
 	}
 
@@ -484,15 +482,11 @@ int checkHasLearned(struct individual *individual) {
 		for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
 			score = 0;
 			for (int k = 0; k < RULE_LENGTH-1; k++) {
-					//if (individual->gene[j] != '#') {
 						if ((individual->gene[j].lowerBound <= allData[i].input[k]) &&
 								(individual->gene[j].upperBound >= allData[i].input[k])) {
 							++score;
 						}
-					//}
-					//else{
-					//	++score;
-					//}
+
 				++j;
 			}
 
@@ -501,7 +495,6 @@ int checkHasLearned(struct individual *individual) {
 					yays++;
 					break;
 				} else {
-					//i = TRAINING_ROWS;
 					break;
 				}
 			}

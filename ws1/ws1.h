@@ -14,13 +14,13 @@
 #define GENERATIONS 10000
 #define POPULATION_SIZE 100
 #define RULE_LENGTH 7
-#define NO_RULES 7
+#define NO_RULES 5
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
-#define TRAINING_ROWS 1750
+#define TRAINING_ROWS 1500
 #define TESTING_ROWS 2000
 #define T_SIZE 5
 #define CV_PROB 0.7 // Crossover probability
-#define MT_PROB 0.05//(double)(1.0/(double)POPULATION_SIZE + 1.0/(double)INDIVIDUAL_LENGTH)/2.0 // Mutation probability
+#define MT_PROB 0.1//(double)(1.0/(double)POPULATION_SIZE + 1.0/(double)INDIVIDUAL_LENGTH)/2.0 // Mutation probability
 
 #define DATA_FILE "data3.txt"
 #define OUTPUT_FILE "out.txt"
