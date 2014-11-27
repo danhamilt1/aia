@@ -10,7 +10,7 @@
 #include <math.h>
 #include <time.h>
 
-#define GENERATIONS 10000
+#define GENERATIONS 100000
 #define POPULATION_SIZE 100
 #define RULE_LENGTH 7
 #define NO_RULES 15
