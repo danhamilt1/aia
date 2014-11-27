@@ -90,7 +90,7 @@ int main(void) {
 		f_csv = fopen("history.csv", "a");
 		fprintf(f_csv, "\n %d, %d, %d",
 				population[bestInPopulation].fitness,
-				checkHasLearned(&population[bestInPopulation]),
+				checkHasLearned(&population[bestInPopulation]) - population[bestInPopulation].fitness,
 				calculatePopulationFitness(population, POPULATION_SIZE) / POPULATION_SIZE);
 		fclose(f_csv);
 
@@ -202,8 +202,8 @@ int calculateFitness(struct individual *individual) {
 			score = 0;
 			for (int k = 0; k < RULE_LENGTH-1; k++) {
 
-						if ((individual->gene[j].lowerBound < trainingData[i].input[k]) &&
-								(individual->gene[j].upperBound > trainingData[i].input[k])) {
+						if ((individual->gene[j].lowerBound <= trainingData[i].input[k]) &&
+								(individual->gene[j].upperBound >= trainingData[i].input[k])) {
 							++score;
 						}
 
@@ -215,7 +215,7 @@ int calculateFitness(struct individual *individual) {
 					fitness++;
 					break;
 				} else {
-					break;
+				  break;
 				}
 			}
 		}
@@ -259,8 +259,8 @@ void createNewPopulation(struct individual *oldPopulation,
 
 	for (i = 0; i < POPULATION_SIZE; ++i) {
 		//Carry out 2 tournaments to select 2 parents for mating
-		int p1 = rouletteSelection(oldPopulation, POPULATION_SIZE);
-		int p2 = rouletteSelection(oldPopulation, POPULATION_SIZE);
+		int p1 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
+		int p2 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
 
 		temp = crossover(oldPopulation[p1], oldPopulation[p2]);
 
@@ -316,17 +316,15 @@ int rouletteSelection(struct individual *population, int populationSize) {
 
 void mutateIndividual(struct individual *individual) {
 	int vals[3] = { '0', '1' };
-	double fpVals[8] = {0.3, 0.2, 0.1, 0.01, 0.001, 0.0001, 0.00001, 0.000001};
-	int numVals = 8;
 	for (int i = 0; i < INDIVIDUAL_LENGTH; ++i) {
 		int mutateTo = 0;
 		if (probability(0, MT_PROB)) {
 		if ((i+1) % (RULE_LENGTH) != 0) {
 			if (rand()%2 == 0) {
 				if(rand()%2==0){
-					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound - randfrom(0,0.1));
+					individual->gene[i].lowerBound = individual->gene[i].lowerBound - randfrom(0,0.1);
 				} else {
-					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound + randfrom(0,0.1));
+					individual->gene[i].lowerBound = individual->gene[i].lowerBound + randfrom(0,0.1);
 				}
 				if(individual->gene[i].lowerBound < 0){
 					individual->gene[i].lowerBound = 0.000000;
@@ -337,9 +335,9 @@ void mutateIndividual(struct individual *individual) {
 				}
 			} else {
 				if(rand()%2==0){
-					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound - randfrom(0,0.1));
+					individual->gene[i].upperBound = individual->gene[i].upperBound - randfrom(0,0.1);
 				} else {
-					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound + randfrom(0,0.1));
+					individual->gene[i].upperBound = individual->gene[i].upperBound + randfrom(0,0.1);
 				}
 				if (individual->gene[i].upperBound > 1){
 					individual->gene[i].upperBound = 1.000000;
@@ -481,14 +479,14 @@ int checkHasLearned(struct individual *individual) {
 	int score = 0;
 	int yays = 0;
 
-	for (i = 0; i < TRAINING_ROWS; ++i) {
+	for (i = 0; i < TESTING_ROWS; ++i) {
 		int k = 0;
 		for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
 			score = 0;
 			for (int k = 0; k < RULE_LENGTH-1; k++) {
 					//if (individual->gene[j] != '#') {
-						if ((individual->gene[j].lowerBound < trainingData[i].input[k]) &&
-								(individual->gene[j].upperBound > trainingData[i].input[k])) {
+						if ((individual->gene[j].lowerBound <= allData[i].input[k]) &&
+								(individual->gene[j].upperBound >= allData[i].input[k])) {
 							++score;
 						}
 					//}
@@ -499,12 +497,12 @@ int checkHasLearned(struct individual *individual) {
 			}
 
 			if (score == RULE_LENGTH-1) {
-				if (individual->gene[j].output == trainingData[i].output) {
+				if (individual->gene[j].output == allData[i].output) {
 					yays++;
 					break;
 				} else {
 					//i = TRAINING_ROWS;
-					//break;
+					break;
 				}
 			}
 		}
