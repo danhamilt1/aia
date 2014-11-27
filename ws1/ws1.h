@@ -9,12 +9,12 @@
 #include <curses.h>
 #include <math.h>
 
-#define GENERATIONS 100000
+#define GENERATIONS 1000000
 #define POPULATION_SIZE 100
 #define RULE_LENGTH 7
-#define NO_RULES 10
+#define NO_RULES 15
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
-#define TRAINING_ROWS 1500
+#define TRAINING_ROWS 1600
 #define TESTING_ROWS 2000
 #define T_SIZE 5
 #define CV_PROB 0.7 // Crossover probability
@@ -63,6 +63,8 @@ struct childPair crossover(struct individual parent1,
 void createNewPopulation(struct individual *oldPopulation, struct individual *newPopulation);
 int tournamentSelection(struct individual *population, int tournamentSize, int populationSize);
 int rouletteSelection(struct individual *population, int populationSize);
+int rankSelection();
+void orderPopulation(struct individual *population, int popSize);
 void mutateIndividual(struct individual *individual);
 void selectBestFromPreviousPopulation(struct individual* newPopulation, struct individual* oldPopulation);
 int getBestIndex(struct individual* population);
@@ -79,3 +81,5 @@ struct ioData *allData;
 struct ioData *trainingData;
 
 int tSize = T_SIZE;
+int maxMean = 0;
+bool cv_type = false;

@@ -74,15 +74,19 @@ int main(void) {
 	int x = 1;
 	int y = 1;
 	int bestInPopulation = 0;
+	//maxMean = calculatePopulationFitness(population, POPULATION_SIZE) / POPULATION_SIZE);
 	for (i = 0; i < GENERATIONS; ++i) {
 		int j = 0;
 		time_t begin, end = 0;
 		double timeSpent = 0;
 		begin = clock();
+		orderPopulation(population, POPULATION_SIZE);
+
 		bestInPopulation = getBestIndex(population);
 		x = 1;
 		y = 1;
 		refresh();
+
 		createNewPopulation(population, newPopulation);
 		selectBestFromPreviousPopulation(newPopulation, population);
 
@@ -94,7 +98,7 @@ int main(void) {
 				calculatePopulationFitness(population, POPULATION_SIZE) / POPULATION_SIZE);
 		fclose(f_csv);
 
-		 /*for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
+		 for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
 			x+=20;
 		 	if ((j + 1) % RULE_LENGTH != 0) {
 		 		mvprintw(y,x,"{%f,%f}",population[bestInPopulation].gene[j].lowerBound,population[bestInPopulation].gene[j].upperBound);
@@ -107,7 +111,7 @@ int main(void) {
 		 	}
 
 
-		 }*/
+		 }
 
 		end = clock();
 		timeSpent = (double)(end - begin)/CLOCKS_PER_SEC;
@@ -125,6 +129,16 @@ int main(void) {
 		if(population[bestInPopulation].fitness == TRAINING_ROWS){
 			break;
 		}
+
+		if(maxMean < calculatePopulationFitness(population, POPULATION_SIZE) / POPULATION_SIZE){
+			maxMean = calculatePopulationFitness(population, POPULATION_SIZE) / POPULATION_SIZE;
+			cv_type = true;
+			mvaddstr(++y, x, "roulette     ");
+		} else {
+			cv_type = false;
+			mvaddstr(++y, x, "rank     ");
+		}
+
 		memcpy(population, newPopulation, sizeof(struct individual) * POPULATION_SIZE);
 
 	}
@@ -258,15 +272,17 @@ void createNewPopulation(struct individual *oldPopulation,
 		struct individual *newPopulation) {
 	struct childPair temp;
 	int i = 0;
-
+	int p1;
+	int p2;
 	for (i = 0; i < POPULATION_SIZE; ++i) {
-		refresh();
-		mvaddstr(1, 30, "Working on new population individual: ");
-		printw("%d   ",i);
 		//Carry out 2 tournaments to select 2 parents for mating
-		int p1 = rouletteSelection(oldPopulation, POPULATION_SIZE);
-		int p2 = rouletteSelection(oldPopulation, POPULATION_SIZE);
-
+		if(cv_type = false){
+		p1 = rankSelection();//rouletteSelection(oldPopulation, POPULATION_SIZE);
+		p2 = rankSelection();//rouletteSelection(oldPopulation, POPULATION_SIZE);
+	} else {
+		p1 = rouletteSelection(oldPopulation, POPULATION_SIZE);
+		p2 = rouletteSelection(oldPopulation, POPULATION_SIZE);
+	}
 		temp = crossover(oldPopulation[p1], oldPopulation[p2]);
 
 		mutateIndividual(&temp.child[0]);
@@ -319,13 +335,39 @@ int rouletteSelection(struct individual *population, int populationSize) {
 	return selectedIndividual;
 }
 
+int rankSelection() {
+	double i = 1;
+	while(!probability(0, 1/i)){
+		++i;
+	}
+
+	return (int)i;
+}
+
+void orderPopulation(struct individual *population, int popSize){
+
+	for(int i = 0; i < popSize; ++i){
+		int bestIndex = NULL;
+		for(int j = i; j < popSize; ++j){
+			if((bestIndex == NULL) || population[j].fitness > population[bestIndex].fitness){
+				bestIndex = j;
+			}
+		}
+		struct individual temp = population[bestIndex];
+		for(int k = bestIndex; k > i; --k){
+			population[k] = population[k-1];
+		}
+		population[i] = temp;
+	}
+}
+
 void mutateIndividual(struct individual *individual) {
 	int vals[3] = { '0', '1' };
 	for (int i = 0; i < INDIVIDUAL_LENGTH; ++i) {
 		int mutateTo = 0;
 		if (probability(0, MT_PROB)) {
 		if ((i+1) % (RULE_LENGTH) != 0) {
-			if (rand()%2 == 0) {
+
 				if(rand()%2==0){
 					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound - randfrom(0,0.1));
 				} else {
@@ -338,7 +380,7 @@ void mutateIndividual(struct individual *individual) {
 				if (individual->gene[i].lowerBound > 1){
 					individual->gene[i].lowerBound = 1.000000;
 				}
-			} else {
+
 				if(rand()%2==0){
 					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound - randfrom(0,0.1));
 				} else {
@@ -350,7 +392,7 @@ void mutateIndividual(struct individual *individual) {
 				if(individual->gene[i].upperBound < 0){
 					individual->gene[i].upperBound = 0.000000;
 				}
-			}
+
 
 			if(individual->gene[i].lowerBound > individual->gene[i].upperBound){
 			    double swap = individual->gene[i].lowerBound;
