@@ -94,7 +94,7 @@ int main(void) {
 				calculatePopulationFitness(population, POPULATION_SIZE) / POPULATION_SIZE);
 		fclose(f_csv);
 
-		 /*for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
+		 for (j = 0; j < INDIVIDUAL_LENGTH; ++j) {
 			x+=20;
 		 	if ((j + 1) % RULE_LENGTH != 0) {
 		 		mvprintw(y,x,"{%f,%f}",population[bestInPopulation].gene[j].lowerBound,population[bestInPopulation].gene[j].upperBound);
@@ -107,7 +107,7 @@ int main(void) {
 		 	}
 
 
-		 }*/
+		 }
 
 		end = clock();
 		timeSpent = (double)(end - begin)/CLOCKS_PER_SEC;
@@ -232,15 +232,13 @@ struct childPair crossover(struct individual parent1, struct individual parent2)
 	int i = 0;
 
 	if (probability(0, CV_PROB)) {
-		for (i = 0; i < splitPoint; ++i) {
-			children.child[0].gene[i] = parent1.gene[i];
-			children.child[1].gene[i] = parent2.gene[i];
+		children.child[0] = parent1;
+
+		for(i = 0; i < INDIVIDUAL_LENGTH; ++i){
+			children.child[0].gene[i].lowerBound = (children.child[0].gene[i].lowerBound + parent2.gene[i].lowerBound) / 2.0;
+			children.child[0].gene[i].upperBound = (children.child[0].gene[i].upperBound + parent2.gene[i].upperBound) / 2.0;
 		}
 
-		for (i = splitPoint; i < INDIVIDUAL_LENGTH; ++i) {
-			children.child[0].gene[i] = parent2.gene[i];
-			children.child[1].gene[i] = parent1.gene[i];
-		}
 
 	} else {
 		children.child[0] = parent1;
@@ -258,9 +256,6 @@ void createNewPopulation(struct individual *oldPopulation,
 	int i = 0;
 
 	for (i = 0; i < POPULATION_SIZE; ++i) {
-		refresh();
-		mvaddstr(1, 30, "Working on new population individual: ");
-		printw("%d   ",i);
 		//Carry out 2 tournaments to select 2 parents for mating
 		int p1 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
 		int p2 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
@@ -270,14 +265,6 @@ void createNewPopulation(struct individual *oldPopulation,
 		mutateIndividual(&temp.child[0]);
 		newPopulation[i] = temp.child[0];
 		newPopulation[i].fitness = calculateFitness(&newPopulation[i]);
-
-		++i;
-
-		if (i != POPULATION_SIZE) {
-			mutateIndividual(&temp.child[1]);
-			newPopulation[i] = temp.child[1];
-			newPopulation[i].fitness = calculateFitness(&newPopulation[i]);
-		}
 	}
 }
 
@@ -376,12 +363,12 @@ int getBestIndex(struct individual* population) {
 				|| (population[i].fitness > population[best].fitness)) {
 			best = i;
 		}
-		else if (population[i].fitness == population[best].fitness) {
-			int random = rand()%2;
-			if(random == 0){
-				best = i;
-			}
-		}
+		// else if (population[i].fitness == population[best].fitness) {
+		// 	int random = rand()%2;
+		// 	if(random == 0){
+		// 		best = i;
+		// 	}
+		// }
 	}
 
 	return best;
