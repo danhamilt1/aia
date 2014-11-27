@@ -62,9 +62,9 @@ struct childPair crossover(struct individual parent1,
             struct individual parent2);
 void createNewPopulation(struct individual *oldPopulation, struct individual *newPopulation);
 int tournamentSelection(struct individual *population, int tournamentSize, int populationSize);
+int rouletteSelection(struct individual *population, int populationSize);
 void mutateIndividual(struct individual *individual);
 void selectBestFromPreviousPopulation(struct individual* newPopulation, struct individual* oldPopulation);
-//int selectBestFromPopulation(struct individual* population);
 int getBestIndex(struct individual* population);
 int getWorstIndex(struct individual* population);
 void readInData();
