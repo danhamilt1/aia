@@ -228,18 +228,20 @@ int calculateFitness(struct individual *individual) {
 
 struct childPair crossover(struct individual parent1, struct individual parent2) {
 	struct childPair children;
-	int splitPoint = rand() % INDIVIDUAL_LENGTH;
+	int numPositions = rand() % INDIVIDUAL_LENGTH;
+
 	int i = 0;
 
 	if (probability(0, CV_PROB)) {
-		for (i = 0; i < splitPoint; ++i) {
-			children.child[0].gene[i] = parent1.gene[i];
-			children.child[1].gene[i] = parent2.gene[i];
-		}
+		children.child[0] = parent1;
+		children.child[1] = parent2;
 
-		for (i = splitPoint; i < INDIVIDUAL_LENGTH; ++i) {
-			children.child[0].gene[i] = parent2.gene[i];
-			children.child[1].gene[i] = parent1.gene[i];
+		for(i = 0; i < numPositions; ++i){
+			int position = rand()%INDIVIDUAL_LENGTH;
+			struct chromosome temp = children.child[0].gene[position];
+
+			children.child[0].gene[position] = children.child[1].gene[position];
+			children.child[1].gene[position] = temp;
 		}
 
 	} else {
@@ -303,8 +305,6 @@ int tournamentSelection(struct individual *population, int tournamentSize,
 
 void mutateIndividual(struct individual *individual) {
 	int vals[3] = { '0', '1' };
-	double fpVals[8] = {0.3, 0.2, 0.1, 0.01, 0.001, 0.0001, 0.00001, 0.000001};
-	int numVals = 8;
 	for (int i = 0; i < INDIVIDUAL_LENGTH; ++i) {
 		int mutateTo = 0;
 		if (probability(0, MT_PROB)) {

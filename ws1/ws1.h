@@ -8,10 +8,8 @@
 #include <string.h>
 #include <curses.h>
 #include <math.h>
-#include <pthread.h>
-#include <time.h>
 
-#define GENERATIONS 1000
+#define GENERATIONS 100000
 #define POPULATION_SIZE 100
 #define RULE_LENGTH 7
 #define NO_RULES 10
