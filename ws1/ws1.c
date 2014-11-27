@@ -226,31 +226,40 @@ int calculateFitness(struct individual *individual) {
 
 }
 
-struct childPair crossover(struct individual parent1, struct individual parent2) {
-	struct childPair children;
-	int splitPoint = rand() % INDIVIDUAL_LENGTH;
+void crossover(struct individual parent1, struct individual parent2, struct childPair *children) {
+	int splitPoint = (rand() % NO_RULES) * RULE_LENGTH;
+	int splitPoint2 = (rand() % NO_RULES) * RULE_LENGTH;
 	int i = 0;
+	int j = 0;
 
 	if (probability(0, CV_PROB)) {
 		for (i = 0; i < splitPoint; ++i) {
-			children.child[0].gene[i] = parent1.gene[i];
-			children.child[1].gene[i] = parent2.gene[i];
+			children->child[0].gene[i] = parent1.gene[i];
+		}
+		for (i = splitPoint; i < splitPoint + RULE_LENGTH; ++i) {
+			children->child[0].gene[i] = parent2.gene[i];
+
+		}
+		for (i = splitPoint + RULE_LENGTH; i < INDIVIDUAL_LENGTH; ++i) {
+			children->child[0].gene[i] = parent1.gene[i];
 		}
 
-		for (i = splitPoint; i < INDIVIDUAL_LENGTH; ++i) {
-			children.child[0].gene[i] = parent2.gene[i];
-			children.child[1].gene[i] = parent1.gene[i];
+		for (j = 0; j < splitPoint2; ++j) {
+			children->child[1].gene[j] = parent2.gene[j];
+		}
+		for(j = splitPoint2; j < splitPoint2 + RULE_LENGTH; ++j){
+			children->child[1].gene[j] = parent1.gene[j];
+		}
+		for(j = splitPoint2 + RULE_LENGTH; j < INDIVIDUAL_LENGTH; ++j){
+			children->child[1].gene[j] = parent2.gene[j];
 		}
 
 	} else {
-		children.child[0] = parent1;
-		children.child[1] = parent2;
+		children->child[0] = parent1;
+		children->child[1] = parent2;
 	}
-
-
-	return children;
-
 }
+
 
 void createNewPopulation(struct individual *oldPopulation,
 		struct individual *newPopulation) {
@@ -262,7 +271,7 @@ void createNewPopulation(struct individual *oldPopulation,
 		int p1 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
 		int p2 = tournamentSelection(oldPopulation, T_SIZE, POPULATION_SIZE);
 
-		temp = crossover(oldPopulation[p1], oldPopulation[p2]);
+		crossover(oldPopulation[p1], oldPopulation[p2], &temp);
 
 		mutateIndividual(&temp.child[0]);
 		newPopulation[i] = temp.child[0];
