@@ -167,14 +167,14 @@ int main(void) {
 */
 void initPopulation(struct individual *population){
 	for (int i = 0; i < POPULATION_SIZE; ++i) {
-		char vals[3] = { '0', '1' };
+		char vals[3] = { '0', '1', '2' };
 		for (int j = 0; j < INDIVIDUAL_LENGTH; ++j) {
 			if ((j + 1) % RULE_LENGTH != 0) {
-				population[i].gene[j].lowerBound = fabs(randfrom(0,1));
-				population[i].gene[j].upperBound = fabs(randfrom(population[i].gene[j].lowerBound,1));
+				population[i].gene[j].lowerBound = fabs(randfrom(0,10));
+				population[i].gene[j].upperBound = fabs(randfrom(population[i].gene[j].lowerBound,10));
 
 			} else {
-				population[i].gene[j].output = vals[rand() % 2];
+				population[i].gene[j].output = vals[rand() % 3];
 
 			}
 		}
@@ -430,7 +430,7 @@ int tournamentSelection(struct individual *population, int tournamentSize,
 *
 */
 void mutateIndividual(struct individual *individual) {
-	int vals[3] = { '0', '1' };
+	int vals[3] = { '0', '1', '2'};
 
 	for (int i = 0; i < INDIVIDUAL_LENGTH; ++i) {
 		int mutateTo = 0;
@@ -451,12 +451,6 @@ void mutateIndividual(struct individual *individual) {
 					individual->gene[i].lowerBound = fabs(individual->gene[i].lowerBound + randfrom(0,0.1));
 				}
 
-				if(individual->gene[i].lowerBound < 0){
-					individual->gene[i].lowerBound = 0.000000;
-				}
-				if (individual->gene[i].lowerBound > 1){
-					individual->gene[i].lowerBound = 1.000000;
-				}
 			}
 
 			if (probability(0, MT_PROB)) {
@@ -466,19 +460,13 @@ void mutateIndividual(struct individual *individual) {
 					individual->gene[i].upperBound = fabs(individual->gene[i].upperBound + randfrom(0,0.1));
 				}
 
-				if (individual->gene[i].upperBound > 1){
-					individual->gene[i].upperBound = 1.000000;
-				}
-				if(individual->gene[i].upperBound < 0){
-					individual->gene[i].upperBound = 0.000000;
-				}
 			}
 
 		} else {
 			if (probability(0, MT_PROB)) {
-				mutateTo = rand()%2;
+				mutateTo = rand()%3;
 				while(vals[mutateTo] == individual->gene[i].output){
-					mutateTo = rand()%2;
+					mutateTo = rand()%3;
 				}
 				individual->gene[i].output = vals[mutateTo];
 			}

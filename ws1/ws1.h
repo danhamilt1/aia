@@ -13,16 +13,16 @@
 
 #define GENERATIONS 1000
 #define POPULATION_SIZE 10000
-#define RULE_LENGTH 7
-#define NO_RULES 10
+#define RULE_LENGTH 5
+#define NO_RULES 5
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
-#define TRAINING_ROWS 1500
-#define TESTING_ROWS 2000
+#define TRAINING_ROWS 120
+#define TESTING_ROWS 150
 #define T_SIZE 5
 #define D_CV_PROB 0.9 // Crossover probability
 #define D_MT_PROB (double)((1.0/(double)POPULATION_SIZE)+((double)1.0/(double)INDIVIDUAL_LENGTH))/2 // Mutation probability
 
-#define DATA_FILE "data3.txt"
+#define DATA_FILE "iris.data"
 #define OUTPUT_FILE "out.txt"
 
 #define NUM_THREADS 5
