@@ -13,6 +13,7 @@ int main(void) {
 			sizeof(struct individual) * POPULATION_SIZE);
 	struct individual *population = malloc(sizeof(struct individual) * POPULATION_SIZE);
 
+
 	if ( (mainwin = initscr()) == NULL ) {
 		fprintf(stderr, "Error initialising ncurses.\n");
 		exit(EXIT_FAILURE);
@@ -48,7 +49,9 @@ int main(void) {
 	int bestInNewPopulation = 0;
 	int meanPopulationFitness = 0;
 	int meanNewPopulationFitness = 0;
-
+	int previousBest = 0;
+	int flatLine = 0;
+	bool mutating = false;
 	//////////////////////// Generation loop below ///////////////////////////////
 	for (i = 0; i < GENERATIONS; ++i) {
 		int j = 0;
@@ -91,7 +94,8 @@ int main(void) {
 		++gen;
 
 		double accuracy = (double)checkHasLearned(&population[bestInPopulation])/(double)TESTING_ROWS*100.0;
-		double accuracy2 = ((double)checkHasLearned(&population[bestInPopulation])-(double)population[bestInPopulation].fitness)/(double)(TESTING_ROWS-TRAINING_ROWS)*100;
+		double accuracy2 = (double)population[bestInPopulation].fitness/(double)TRAINING_ROWS*100.0;
+		//double accuracy2 = ((double)checkHasLearned(&population[bestInPopulation])-(double)population[bestInPopulation].fitness)/(double)(TESTING_ROWS-TRAINING_ROWS)*100;
 
 		move(100, 100);
 		mvaddstr(++y, x, "Generation: ");
@@ -103,9 +107,9 @@ int main(void) {
 		mvaddstr(++y, x, "Test: ");
 		printw("%d    ", checkHasLearned(&population[bestInPopulation]));
 		mvaddstr(++y, x, "Accuracy: ");
-		printw("%f    ", accuracy);
+		printw("%1.2f    ", accuracy);
 		mvaddstr(++y, x, "Accuracy2: ");
-		printw("%f    ", accuracy2);
+		printw("%1.2f    ", accuracy2);
 		mvaddstr(++y, x, "MT_PROB: ");
 		printw("%f    ", MT_PROB);
 		mvaddstr(++y, x, "CV_PROB: ");
@@ -121,8 +125,13 @@ int main(void) {
 		mvaddstr(++y, x, "meanNew: ");
 		printw("%d    ", meanNewPopulationFitness);
 
+		// MT_PROB -= 0.0005;
+		// if(MT_PROB < D_MT_PROB){
+		// 	MT_PROB = 0.1;
+		// }
+
 		if(population[bestInPopulation].fitness == TRAINING_ROWS){
-			//break;
+			break;
 		}
 
 		memcpy(population, newPopulation, sizeof(struct individual) * POPULATION_SIZE);
@@ -133,9 +142,9 @@ int main(void) {
 
 	// CLEAN UP
 
-	out = fopen(OUTPUT_FILE, "w");
+	out = fopen(OUTPUT_FILE, "a");
 
-	fprintf(out, "Test matches: %d", checkHasLearned(&newPopulation[getBestIndex(newPopulation)]));
+	fprintf(out, "%d, %d\n", checkHasLearned(&population[bestInPopulation]),i);
 
 	fclose(out);
 	//fclose(f_csv);
@@ -146,7 +155,6 @@ int main(void) {
 	free(newPopulation);
 
 	// mvaddstr(++y,x, "Press any key to exit");
-	getch();
 
 	delwin(mainwin);
   endwin();
