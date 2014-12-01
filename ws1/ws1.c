@@ -94,9 +94,6 @@ int main(void) {
 		// printw("%d",
 		// 		checkHasLearned(&newPopulation[getBestIndex(newPopulation)]));
 
-		if (population[bestInPopulation].fitness == TRAINING_ROWS) {
-			break;
-		}
 		memcpy(population, newPopulation,
 				sizeof(struct individual) * POPULATION_SIZE);
 
@@ -223,8 +220,6 @@ int calculateFitness(struct individual *individual) {
 					++fitness;
 					break;
 				} else {
-					//i = TRAINING_ROWS;
-					--fitness;
 					break;
 				}
 			}
@@ -291,8 +286,6 @@ struct childPair crossover(struct individual parent1, struct individual parent2)
 	}
 	children.child[0].gene[INDIVIDUAL_LENGTH] = '\0';
 	children.child[1].gene[INDIVIDUAL_LENGTH] = '\0';
-	//children.child[0].fitness = calculateFitness(children.child[0]);
-	//children.child[1].fitness = calculateFitness(children.child[1]);
 
 	return children;
 
@@ -533,7 +526,6 @@ int checkHasLearned(struct individual *individual) {
 					yays++;
 					break;
 				} else {
-					//i = TESTING_ROWS;
 					break;
 				}
 			}
