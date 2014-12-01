@@ -27,7 +27,7 @@ int main(void) {
 
 	f_csv = fopen("history.csv", "w");
 
-	fprintf(f_csv, "BEST FITNESS, TEST, MEAN,");
+	fprintf(f_csv, "GENERATION, BEST FITNESS, TEST, MEAN,");
 
 	fclose(f_csv);
 
@@ -95,7 +95,8 @@ int main(void) {
 
 		clear();
 		f_csv = fopen("history.csv", "a");
-		fprintf(f_csv, "\n %d, %d, %d",
+		fprintf(f_csv, "\n %d, %d, %d, %d",
+				i,
 				population[bestInPopulation].fitness,
 				checkHasLearned(&population[bestInPopulation]),
 				meanPopulationFitness);
@@ -191,8 +192,8 @@ int main(void) {
 				// 	MT_PROB = 1.0;
 				// }
 
-				if(MT_PROB < 0.001){
-					MT_PROB = 0.3;
+				if(MT_PROB < MT_MIN){
+					MT_PROB = 0.1;
 				}
 
 				MT_PROB -= 0.005;
@@ -218,9 +219,6 @@ int main(void) {
 	free(allData);
 	free(population);
 	free(newPopulation);
-
-	// mvaddstr(++y,x, "Press any key to exit");
-	getch();
 
 	delwin(mainwin);
   endwin();
