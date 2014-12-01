@@ -27,7 +27,7 @@ int main(void) {
 
 	//Write header to CSV
 	f_csv = fopen("history.csv", "w");
-	fprintf(f_csv, "BEST FITNESS, TEST, MEAN,");
+	fprintf(f_csv, "GENERATION, BEST FITNESS, TEST, MEAN,");
 	fclose(f_csv);
 
 	refresh();
@@ -69,7 +69,8 @@ int main(void) {
 
 		clear();
 		f_csv = fopen("history.csv", "a");
-		fprintf(f_csv, "\n %d, %d, %d",
+		fprintf(f_csv, "\n %d, %d, %d, %d",
+				i,
 				population[bestInPopulation].fitness,
 				checkHasLearned(&population[bestInPopulation]),
 				meanPopulationFitness);

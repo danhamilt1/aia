@@ -11,12 +11,12 @@
 #include <pthread.h>
 #include <time.h>
 
-#define GENERATIONS 1000
-#define POPULATION_SIZE 10000
+#define GENERATIONS 500
+#define POPULATION_SIZE 1000
 #define RULE_LENGTH 7
 #define NO_RULES 10
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
-#define TRAINING_ROWS 1500
+#define TRAINING_ROWS 1600
 #define TESTING_ROWS 2000
 #define T_SIZE 5
 #define D_CV_PROB 0.9 // Crossover probability
