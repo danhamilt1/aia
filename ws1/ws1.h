@@ -10,14 +10,14 @@
 #include <pthread.h>
 
 #define GENERATIONS 150
-#define POPULATION_SIZE 100
+#define POPULATION_SIZE 1000
 #define RULE_LENGTH 7
-#define NO_RULES 5
+#define NO_RULES 10
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
 #define TRAINING_ROWS 51
 #define TESTING_ROWS 64
 #define T_SIZE 2
-#define CV_PROB 0.5 // Crossover probability
+#define CV_PROB 0.7 // Crossover probability
 #define MT_PROB (double)(1.0/(double)POPULATION_SIZE + 1.0/(double)INDIVIDUAL_LENGTH)/2 // Mutation probability
 
 #define DATA_FILE "data1.txt"
@@ -59,7 +59,6 @@ void selectFittest(struct individual *oldPopulation, struct individual *newPopul
 int tournamentSelection(struct individual *population, int tournamentSize, int populationSize);
 void mutateIndividual(struct individual *individual);
 void selectBestFromPreviousPopulation(struct individual* newPopulation, struct individual* oldPopulation);
-//int selectBestFromPopulation(struct individual* population);
 int getBestIndex(struct individual* population);
 int getWorstIndex(struct individual* population);
 void readInData();
