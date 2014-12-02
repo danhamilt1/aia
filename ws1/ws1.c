@@ -95,9 +95,6 @@ int main(void) {
 		// printw("%d",
 		// 		checkHasLearned(&newPopulation[getBestIndex(newPopulation)]));
 
-		if (population[bestInPopulation].fitness == TRAINING_ROWS) {
-			break;
-		}
 		memcpy(population, newPopulation,
 				sizeof(struct individual) * POPULATION_SIZE);
 
@@ -122,7 +119,7 @@ int main(void) {
 	fprintf(out, "%d, %d\n", checkHasLearned(&population[bestInPopulation]),i);
 
 	fclose(out);
-	
+
 	fclose(f_csv);
 
 	free(trainingData);
@@ -417,14 +414,15 @@ int getBestIndex(struct individual* population) {
 		if ((best == -1)
 				|| (population[i].fitness > population[best].fitness)) {
 			best = i;
-		} else if (population[i].fitness == population[best].fitness) {
-			int random = rand() % 2;
-			if (random == 0) {
-				best = i;
-			} else {
-				best = best;
-			}
 		}
+		// else if (population[i].fitness == population[best].fitness) {
+		// 	int random = rand() % 2;
+		// 	if (random == 0) {
+		// 		best = i;
+		// 	} else {
+		// 		best = best;
+		// 	}
+		// }
 	}
 
 	return best;

@@ -11,7 +11,7 @@ make
 
 _now=$(date +"%m_%d_%Y_%s")
 
-while [ $i -lt 5 ]
+while [ $i -lt 10 ]
 do
 
   printf "$i, " >> out.txt
@@ -22,7 +22,7 @@ do
   cp ./history.csv ./results/$_file2
 
   i=$[$i+1]
-  sleep 3
+  sleep 1
 done
 
 
