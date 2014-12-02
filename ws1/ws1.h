@@ -9,8 +9,8 @@
 #include <curses.h>
 #include <pthread.h>
 
-#define GENERATIONS 150
-#define POPULATION_SIZE 1000
+#define GENERATIONS 50
+#define POPULATION_SIZE 50
 #define RULE_LENGTH 7
 #define NO_RULES 10
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)

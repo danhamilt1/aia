@@ -11,17 +11,18 @@ make
 
 _now=$(date +"%m_%d_%Y_%s")
 
-while [ $i -lt 5 ]
+while [ $i -lt 50 ]
 do
 
   printf "$i, " >> out.txt
   ./ws1
-  i=$[$i+1]
-  sleep 3
 
   _history_now=${_now}_plots_${i}
   _file2="$_history_now.csv"
   cp ./history.csv ./results/$_file2
+
+  i=$[$i+1]
+  sleep 1
 done
 
 
