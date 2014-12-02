@@ -9,8 +9,8 @@
 #include <curses.h>
 #include <pthread.h>
 
-#define GENERATIONS 2000
-#define POPULATION_SIZE 500
+#define GENERATIONS 150
+#define POPULATION_SIZE 100
 #define RULE_LENGTH 12
 #define NO_RULES 15
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
@@ -18,7 +18,7 @@
 #define TESTING_ROWS 2048
 #define T_SIZE 2
 #define CV_PROB 0.7 // Crossover probability
-#define MT_PROB (double)(1.0/(double)POPULATION_SIZE + 1.0/(double)INDIVIDUAL_LENGTH)/2 // Mutation probability
+#define MT_PROB 0.01//(double)(1.0/(double)POPULATION_SIZE + 1.0/(double)INDIVIDUAL_LENGTH)/2 // Mutation probability
 
 #define DATA_FILE "data2.txt"
 #define OUTPUT_FILE "out.txt"

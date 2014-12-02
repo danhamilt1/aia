@@ -27,7 +27,7 @@ int main(void) {
 
 	f_csv = fopen("history.csv", "w");
 
-	fprintf(f_csv, "BEST FITNESS, MEAN,");
+	fprintf(f_csv, "GENERATION, BEST FITNESS, MEAN,");
 
 	refresh();
 	//Set-up initial population
@@ -67,7 +67,8 @@ int main(void) {
 		selectBestFromPreviousPopulation(newPopulation, population);
 
 
-		fprintf(f_csv, "\n %d, %d",
+		fprintf(f_csv, "\n %d, %d, %d",
+				i,
 				population[bestInPopulation].fitness,
 				(int)calculatePopulationFitness(population,
 						POPULATION_SIZE) / POPULATION_SIZE);
@@ -118,10 +119,10 @@ int main(void) {
 
 	out = fopen(OUTPUT_FILE, "a");
 
-	fprintf(out, "%d, %d\n",
-			checkHasLearned(&newPopulation[getBestIndex(newPopulation)]), i);
+	fprintf(out, "%d, %d\n", checkHasLearned(&population[bestInPopulation]),i);
 
 	fclose(out);
+	
 	fclose(f_csv);
 
 	free(trainingData);
