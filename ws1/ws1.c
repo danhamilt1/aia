@@ -27,7 +27,7 @@ int main(void) {
 
 	f_csv = fopen("history.csv", "w");
 
-	fprintf(f_csv, "BEST FITNESS, MEAN, TEST");
+	fprintf(f_csv, "GENERATION, BEST FITNESS, MEAN, TEST");
 
 	fclose(f_csv);
 
@@ -75,7 +75,8 @@ int main(void) {
 		selectBestFromPreviousPopulation(newPopulation, population);
 
 		f_csv = fopen("history.csv", "a");
-		fprintf(f_csv, "\n %d, %d, %d",
+		fprintf(f_csv, "\n %d, %d, %d, %d",
+				i,
 				population[bestInPopulation].fitness,
 				(int)calculatePopulationFitness(population,
 						POPULATION_SIZE) / POPULATION_SIZE,
@@ -119,7 +120,7 @@ int main(void) {
 		bestInNewPopulation = getBestIndex(newPopulation);
 		worstInNewPopulation = getWorstIndex(newPopulation);
 		meanNewPopulationFitness = calculatePopulationFitness(newPopulation, POPULATION_SIZE) / POPULATION_SIZE;
-
+/*
 		if(newPopulation[bestInNewPopulation].fitness > newPopulation[worstInNewPopulation].fitness) {
 			theta = 0.01* ((double)newPopulation[bestInNewPopulation].fitness - (double)meanNewPopulationFitness)/((double)newPopulation[bestInNewPopulation].fitness - (double)newPopulation[worstInNewPopulation].fitness);
 		} else if (newPopulation[bestInNewPopulation].fitness == newPopulation[worstInNewPopulation].fitness) {
@@ -149,16 +150,12 @@ int main(void) {
 		if(MT_PROB > 1.0){
 			MT_PROB = 1.0;
 		}
-
-		// if(MT_PROB < 0.00001){
-		// 	MT_PROB = 0.1;
-		// }
-		//
-		// MT_PROB -= 0.005;
-
-		if(population[bestInPopulation].fitness == TRAINING_ROWS){
-			break;
+*/
+		if(MT_PROB < 0.00001){
+			MT_PROB = 0.1;
 		}
+
+		MT_PROB -= 0.005;
 
 		memcpy(population, newPopulation,
 				sizeof(struct individual) * POPULATION_SIZE);
