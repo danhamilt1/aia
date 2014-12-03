@@ -126,13 +126,9 @@ int main(void) {
 		mvaddstr(++y, x, "meanNew: ");
 		printw("%d    ", meanNewPopulationFitness);
 
-		// MT_PROB -= 0.0005;
-		// if(MT_PROB < D_MT_PROB){
-		// 	MT_PROB = 0.1;
-		// }
-
-		if(population[bestInPopulation].fitness == TRAINING_ROWS){
-			break;
+		MT_PROB -= 0.0005;
+		if(MT_PROB < 0.001){
+			MT_PROB = 0.1;
 		}
 
 		memcpy(population, newPopulation, sizeof(struct individual) * POPULATION_SIZE);
@@ -509,12 +505,12 @@ int getBestIndex(struct individual* population) {
 				|| (population[i].fitness >= population[best].fitness)) {
 			best = i;
 		}
-		else if (population[i].fitness == population[best].fitness) {
-			int random = rand()%2;
-			if(random == 0){
-				best = i;
-			}
-		}
+		// else if (population[i].fitness == population[best].fitness) {
+		// 	int random = rand()%2;
+		// 	if(random == 0){
+		// 		best = i;
+		// 	}
+		// }
 	}
 
 	return best;
@@ -529,12 +525,12 @@ int getWorstIndex(struct individual* population) {
 				|| (population[i].fitness <= population[worst].fitness)) {
 			worst = i;
 		}
-		else if (population[i].fitness == population[worst].fitness) {
-			int random = rand()%2;
-			if(random == 0){
-				worst = i;
-			}
-		}
+		// else if (population[i].fitness == population[worst].fitness) {
+		// 	int random = rand()%2;
+		// 	if(random == 0){
+		// 		worst = i;
+		// 	}
+		// }
 	}
 
 	return worst;
