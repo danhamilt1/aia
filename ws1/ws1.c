@@ -96,7 +96,6 @@ int main(void) {
 
 		double accuracy = (double)checkHasLearned(&population[bestInPopulation])/(double)TESTING_ROWS*100.0;
 		double accuracy2 = (double)population[bestInPopulation].fitness/(double)TRAINING_ROWS*100.0;
-		//double accuracy2 = ((double)checkHasLearned(&population[bestInPopulation])-(double)population[bestInPopulation].fitness)/(double)(TESTING_ROWS-TRAINING_ROWS)*100;
 
 		move(100, 100);
 		mvaddstr(++y, x, "Generation: ");
@@ -144,14 +143,11 @@ int main(void) {
 	fprintf(out, "%d, %d\n", checkHasLearned(&population[bestInPopulation]),i);
 
 	fclose(out);
-	//fclose(f_csv);
 
 	free(trainingData);
 	free(allData);
 	free(population);
 	free(newPopulation);
-
-	// mvaddstr(++y,x, "Press any key to exit");
 
 	delwin(mainwin);
   endwin();
@@ -418,7 +414,6 @@ int tournamentSelection(struct individual *population, int tournamentSize,
 		}
 	}
 
-	//printf("Best from tournament: %d Fitness: %d\n", best, population[best].fitness);
 	return best;
 }
 
@@ -483,6 +478,10 @@ void mutateIndividual(struct individual *individual) {
 	}
 }
 
+/**
+* Select best individual from previous population and add it to the
+* new population
+*/
 void selectBestFromPreviousPopulation(struct individual* newPopulation,
 		struct individual* oldPopulation) {
 	int bestOld = getBestIndex(oldPopulation);
@@ -496,6 +495,10 @@ void selectBestFromPreviousPopulation(struct individual* newPopulation,
 	}
 }
 
+/**
+*	Get the index of the best individual in the population
+*
+*/
 int getBestIndex(struct individual* population) {
 	int best = -1;
 	int i = 0;
@@ -516,6 +519,10 @@ int getBestIndex(struct individual* population) {
 	return best;
 }
 
+/**
+*	Get the index of the worst individual in the population
+*
+*/
 int getWorstIndex(struct individual* population) {
 	int worst = -1;
 	int i = 0;
@@ -536,6 +543,10 @@ int getWorstIndex(struct individual* population) {
 	return worst;
 }
 
+/**
+*	Read in the data from the file
+*
+*/
 void readInData() {
 	FILE *f_data;
 
@@ -563,6 +574,10 @@ void readInData() {
 	fclose(f_data);
 }
 
+/**
+*	Select a percentage of the data to train with
+*
+*/
 void selectTrainingData(){
 	int selected[TRAINING_ROWS];
 	int i = 0;
@@ -584,18 +599,20 @@ void selectTrainingData(){
 						hasNumber = true;
 						break;
 					}
-					//printf("%d\n",j);
 			}
 
 		}while(hasNumber == true);
 
 		selected[i] = randomIndex;
-		//printf("%d\n", i);
 	  trainingData[i] = allData[selected[i]];
 	}
 
 }
 
+/**
+*	Check if the population has learned with the full data file
+*
+*/
 int checkHasLearned(struct individual *individual) {
 	int i = 0;
 	int j = 0;
@@ -630,6 +647,10 @@ int checkHasLearned(struct individual *individual) {
 	return yays;
 }
 
+/**
+* Generate random float
+*
+*/
 double randfrom(double min, double max) {
 		double random = (double) rand() / RAND_MAX;
 		return min + (random * (max - min));

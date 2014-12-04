@@ -12,7 +12,7 @@
 #include <time.h>
 
 #define GENERATIONS 500
-#define POPULATION_SIZE 10000
+#define POPULATION_SIZE 1000
 #define RULE_LENGTH 7
 #define NO_RULES 10
 #define INDIVIDUAL_LENGTH (RULE_LENGTH*NO_RULES)
@@ -72,7 +72,6 @@ void createNewPopulation(struct individual *oldPopulation, struct individual *ne
 int tournamentSelection(struct individual *population, int tournamentSize, int populationSize);
 void mutateIndividual(struct individual *individual);
 void selectBestFromPreviousPopulation(struct individual* newPopulation, struct individual* oldPopulation);
-//int selectBestFromPopulation(struct individual* population);
 int getBestIndex(struct individual* population);
 int getWorstIndex(struct individual* population);
 void readInData();
