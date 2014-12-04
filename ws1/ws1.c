@@ -22,14 +22,15 @@ int main(void) {
 
 	srand(getSeed());
 
+	//Initialise global data variables
 	readInData();
 	selectTrainingData();
 
+	//Write header to CSV
 	f_csv = fopen("history.csv", "w");
-
 	fprintf(f_csv, "GENERATION, BEST FITNESS, MEAN,");
-
 	refresh();
+
 	//Set-up initial population
 	for (i = 0; i < POPULATION_SIZE; ++i) {
 		char vals[3] = { '0', '1', '#' };
@@ -48,7 +49,7 @@ int main(void) {
 	memcpy(newPopulation, population,
 			sizeof(struct individual) * POPULATION_SIZE);
 
-	//////////////////////// Generation loop
+//////////////////////// Generation loop below ///////////////////////////////
 
 	// NCurses coords
 	int x = 1;
@@ -73,10 +74,6 @@ int main(void) {
 				(int)calculatePopulationFitness(population,
 						POPULATION_SIZE) / POPULATION_SIZE);
 
-		if ((i % 100) == 0) {
-			//printf("Completed: %2.2f\%\n", ((float)i/(float)GENERATIONS)*100.0);
-		}
-
 		printIndividual(&population[bestInPopulation], &x, &y);
 
 		move(100, 100);
@@ -88,19 +85,13 @@ int main(void) {
 		printw("%f    ", MT_PROB);
 		mvaddstr(++y, x, "Number of mutations this generation: ");
 		printw("%d    ", numberOfMutations);
-		//printf("Generation: %d Fitness: %d\n", i, newPopulation[getBestIndex(newPopulation)].fitness);
-		//printf("Worst: %s, Generation: %d Fitness: %d\n", newPopulation[getWorstIndex(newPopulation)].gene, i, newPopulation[getWorstIndex(newPopulation)].fitness);
-
-		// mvaddstr(++y, x, "Test: ");
-		// printw("%d",
-		// 		checkHasLearned(&newPopulation[getBestIndex(newPopulation)]));
 
 		memcpy(population, newPopulation,
 				sizeof(struct individual) * POPULATION_SIZE);
 
 	}
 
-	////////////////////////
+//////////////////////// Generation loop above ///////////////////////////////
 
 	//fclose(f_csv);
 
@@ -127,7 +118,7 @@ out = fopen(OUTPUT_FILE, "a");
 	free(newPopulation);
 
 	mvaddstr(++y, x, "Press any key to exit");
-//	getch();
+	getch();
 
 	delwin(mainwin);
 	endwin();
@@ -156,6 +147,10 @@ void printIndividual(struct individual *individual, int *xP, int *yP){
 	*yP = y;
 }
 
+/**
+*	Calculate the fitness of the population
+*
+*/
 long calculatePopulationFitness(struct individual *population, int arrSize) {
 	int i = 0;
 	long totalFitness = 0;
@@ -166,6 +161,10 @@ long calculatePopulationFitness(struct individual *population, int arrSize) {
 	return totalFitness;
 }
 
+/**
+*	Return true of false with a probability
+*
+*/
 bool probability(float minValue, float maxValue) {
 	bool retVal = false;
 	double randomNumber = randfrom(0.0,1.0);
@@ -177,6 +176,10 @@ bool probability(float minValue, float maxValue) {
 	return retVal;
 }
 
+/**
+*	Get seed for srand() from /dev/random
+*
+*/
 int getSeed() {
 	int randomData = open("/dev/random", O_RDONLY);
 	int randomInt;
@@ -195,6 +198,11 @@ int getSeed() {
 	return randomInt;
 }
 
+/**
+*	Calculate the fitness of the individual passed in, returns
+* the fitness
+*
+*/
 int calculateFitness(struct individual *individual) {
 	int i = 0;
 	int j = 0;
@@ -231,6 +239,10 @@ int calculateFitness(struct individual *individual) {
 
 }
 
+/**
+*	Thread initialised from createNewPoplation()
+*
+*/
 void *runThread(void *threadArgs) {
 	int i = 0;
 	struct childPair temp;
@@ -264,6 +276,10 @@ void *runThread(void *threadArgs) {
 	pthread_exit((void *) threadArgs);
 }
 
+/**
+*	Crossover the two individuals, returns a pair of new individuals
+*
+*/
 struct childPair crossover(struct individual parent1, struct individual parent2) {
 	struct childPair children;
 	int splitPoint = rand() % INDIVIDUAL_LENGTH;
@@ -291,6 +307,10 @@ struct childPair crossover(struct individual parent1, struct individual parent2)
 
 }
 
+/**
+*	Creates a new population of individuals, crossed and mutated from the oldPopulation
+*
+*/
 void createNewPopulation(struct individual *oldPopulation,
 		struct individual *newPopulation) {
 	int i = 0;
@@ -328,24 +348,10 @@ void createNewPopulation(struct individual *oldPopulation,
 
 }
 
-void selectFittest(struct individual *oldPopulation,
-		struct individual *newPopulation) {
-	int i = 0;
-	//Select the fittest parents
-	for (i = 0; i < POPULATION_SIZE; ++i) {
-		int p1 = rand() % POPULATION_SIZE; // First parent
-		int p2 = rand() % POPULATION_SIZE; // Second parent
-
-		if (oldPopulation[p1].fitness >= oldPopulation[p2].fitness) {
-			newPopulation[i] = oldPopulation[p1];
-
-		} else {
-			newPopulation[i] = oldPopulation[p2];
-
-		}
-	}
-}
-
+/**
+*	Tournament selection algorithm
+*
+*/
 int tournamentSelection(struct individual *population, int tournamentSize,
 		int populationSize) {
 	int best = -1;
@@ -362,10 +368,13 @@ int tournamentSelection(struct individual *population, int tournamentSize,
 		}
 	}
 
-	//printf("Best from tournament: %d Fitness: %d\n", best, population[best].fitness);
 	return best;
 }
 
+/**
+*	Carry out mutations on the individual passed in
+*
+*/
 void mutateIndividual(struct individual *individual) {
 	int vals[3] = { '0', '1', '#' };
 	for (int i = 0; i < INDIVIDUAL_LENGTH; ++i) {
@@ -390,6 +399,10 @@ void mutateIndividual(struct individual *individual) {
 
 }
 
+/**
+* Select best individual from previous population and add it to the
+* new population
+*/
 void selectBestFromPreviousPopulation(struct individual* newPopulation,
 		struct individual* oldPopulation) {
 	int bestOld = getBestIndex(oldPopulation);
@@ -403,6 +416,10 @@ void selectBestFromPreviousPopulation(struct individual* newPopulation,
 	}
 }
 
+/**
+*	Get the index of the best individual in the population
+*
+*/
 int getBestIndex(struct individual* population) {
 	int best = -1;
 	int i = 0;
@@ -411,7 +428,8 @@ int getBestIndex(struct individual* population) {
 		if ((best == -1)
 				|| (population[i].fitness > population[best].fitness)) {
 			best = i;
-		} else if (population[i].fitness == population[best].fitness) {
+		}
+		else if (population[i].fitness == population[best].fitness) {
 			int random = rand() % 2;
 			if (random == 0) {
 				best = i;
@@ -424,6 +442,10 @@ int getBestIndex(struct individual* population) {
 	return best;
 }
 
+/**
+*	Get the index of the worst individual in the population
+*
+*/
 int getWorstIndex(struct individual* population) {
 	int worst = -1;
 	int i = 0;
@@ -438,6 +460,10 @@ int getWorstIndex(struct individual* population) {
 	return worst;
 }
 
+/**
+*	Read in the data from the file
+*
+*/
 void readInData() {
 	FILE *f_data;
 
@@ -466,6 +492,10 @@ void readInData() {
 	fclose(f_data);
 }
 
+/**
+*	Select a percentage of the data to train with
+*
+*/
 void selectTrainingData() {
 	int selected[TRAINING_ROWS];
 	int i = 0;
@@ -496,6 +526,10 @@ void selectTrainingData() {
 
 }
 
+/**
+*	Check if the population has learned with the full data file
+*
+*/
 int checkHasLearned(struct individual *individual) {
 	int i = 0;
 	int j = 0;
@@ -535,6 +569,10 @@ int checkHasLearned(struct individual *individual) {
 	return yays;
 }
 
+/**
+* Generate random float
+*
+*/
 double randfrom(double min, double max) {
 		double random = (double) rand() / RAND_MAX;
 		return min + (random * (max - min));
