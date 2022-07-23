@@ -65,6 +65,7 @@ void selectTrainingData();
 int checkHasLearned(struct individual *individual);
 void *runThread(void *threadArgs);
 double randfrom(double min, double max);
+void printIndividual(struct individual *individual, int *xP, int *yP);
 
 WINDOW * mainwin;
 
